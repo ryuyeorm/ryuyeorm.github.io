@@ -66,18 +66,29 @@ export class SceneManager {
     // Controls (disabled for third-person follow)
     this.controls = null;
 
-    // Lights
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Lights - brighter for better visibility
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     this.scene.add(this.ambientLight);
 
-    this.sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
     this.sunLight.position.set(5, 10, 7);
     this.sunLight.castShadow = true;
     this.scene.add(this.sunLight);
+    
+    // Add a fill light from below for better shark visibility
+    this.fillLight = new THREE.DirectionalLight(0xaaddff, 0.4);
+    this.fillLight.position.set(-3, -5, 5);
+    this.scene.add(this.fillLight);
 
-    // Ocean ground using River.js shader material
+    // Ocean ground - use shader in full mode, simple material in prototype
     const oceanGeo = new THREE.PlaneGeometry(100, 100, 1, 1);
-    const oceanMat = createRiverMaterial();
+    const oceanMat = this.graphicsMode === 'full' 
+      ? createRiverMaterial()
+      : new THREE.MeshStandardMaterial({ 
+          color: 0x1e90ff, 
+          roughness: 0.3, 
+          metalness: 0.1 
+        });
     this.ocean = new THREE.Mesh(oceanGeo, oceanMat);
     this.ocean.rotation.x = -Math.PI / 2; // lay flat
     this.ocean.position.y = 0; // ground level
@@ -302,7 +313,29 @@ export class SceneManager {
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
+  updateCloudTransparency() {
+    // Only apply to prototype mode clouds (spheres)
+    if (this.graphicsMode !== 'prototype') return;
+    
+    const FADE_START_DISTANCE = 8.0; // Start fading at this distance
+    const FADE_END_DISTANCE = 3.0;   // Fully transparent at this distance
+    
+    for (const cloud of this.clouds) {
+      const distance = this.camera.position.distanceTo(cloud.position);
+      
+      if (distance < FADE_START_DISTANCE) {
+        // Calculate fade factor (1.0 = opaque, 0.0 = transparent)
+        const fadeFactor = Math.max(0, (distance - FADE_END_DISTANCE) / (FADE_START_DISTANCE - FADE_END_DISTANCE));
+        cloud.material.opacity = 0.7 * fadeFactor; // Base opacity is 0.7
+      } else {
+        // Reset to normal opacity when far away
+        cloud.material.opacity = 0.7;
+      }
+    }
+  }
+
   render() {
+    this.updateCloudTransparency();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -391,8 +424,18 @@ export class SceneManager {
     }
 
     if (this.graphicsMode === 'full') {
-      // Full mode: load shark GLTF model
+      // Full mode: load shark GLTF model with manual texture loading
+      const textureLoader = new THREE.TextureLoader();
+      
+      // Pre-load textures
+      const bodyDiffuse = textureLoader.load('scene/shark/textures/MI_1047502_Body_01_diffuse.png');
+      const bodyNormal = textureLoader.load('scene/shark/textures/MI_1047502_Body_01_normal.png');
+      bodyDiffuse.encoding = THREE.sRGBEncoding;
+      bodyDiffuse.flipY = false;
+      bodyNormal.flipY = false;
+      
       const gltfLoader = new GLTFLoader();
+      
       gltfLoader.load(
         'scene/shark/scene.gltf',
         (gltf) => {
@@ -401,16 +444,30 @@ export class SceneManager {
 
           shark.scale.set(0.6, 0.6, 0.6);
           shark.position.set(0, 0.6, 0);
+          shark.rotation.y = Math.PI / 2; // Rotate 90 degrees to face forward
 
+          // Apply pre-loaded textures to all meshes
           shark.traverse((obj) => {
             if (obj.isMesh) {
               obj.castShadow = true;
               obj.receiveShadow = true;
+              
+              // Create new material with manually loaded textures
+              const newMat = new THREE.MeshStandardMaterial({
+                map: bodyDiffuse.clone(),
+                normalMap: bodyNormal.clone(),
+                color: 0xffffff,
+                roughness: 0.6,
+                metalness: 0.2
+              });
+              
+              obj.material = newMat;
             }
           });
 
           this.cube = shark;
           this.scene.add(shark);
+          console.log('Shark loaded with textures');
         },
         undefined,
         (error) => {
@@ -439,6 +496,19 @@ export class SceneManager {
   setGraphicsMode(mode) {
     if (this.graphicsMode === mode) return;
     this.graphicsMode = mode;
+    
+    // Recreate ocean with appropriate material
+    if (this.ocean) {
+      this.ocean.material.dispose();
+      const oceanMat = mode === 'full' 
+        ? createRiverMaterial()
+        : new THREE.MeshStandardMaterial({ 
+            color: 0x1e90ff, 
+            roughness: 0.3, 
+            metalness: 0.1 
+          });
+      this.ocean.material = oceanMat;
+    }
     
     // Recreate clouds and player with new mode
     this._createClouds();

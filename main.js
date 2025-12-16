@@ -1,3 +1,6 @@
+ // Shark game
+ //LLM Usage claim : This code was written with assist of LLM in texture, debugging and optimization
+ import * as THREE from './lib/three.js/build/three.module.js';
   import { SceneManager } from './scene/setup.js';
   import { Obstacle } from './scene/obstacle.js';
   import { Coin } from './scene/coin.js';
@@ -16,6 +19,11 @@
 
     const topbar = document.createElement('div');
     topbar.id = 'topbar';
+
+    // Project ID
+    const projectId = document.createElement('div');
+    projectId.className = 'project-id';
+    projectId.textContent = 'Group 1215';
 
     // Score UI
     const scoreContainer = document.createElement('div');
@@ -41,16 +49,11 @@
           <div id="gold-value" class="stat-value">0</div>
         </div>
       </div>
-    `;
-
-    // Height bar UI
-    const heightBar = document.createElement('div');
-    heightBar.id = 'height-bar';
-    heightBar.innerHTML = `
-      <div class="height-bar-track"></div>
-      <div class="height-indicator">
-        <div class="height-ball"></div>
-        <div class="height-value">0m</div>
+      <div class="stat-box">
+        <div class="stat-content">
+          <div class="stat-label">High Score</div>
+          <div id="highscore-value" class="stat-value">0</div>
+        </div>
       </div>
     `;
 
@@ -58,6 +61,7 @@
     restart.id = 'restart';
     restart.textContent = 'Restart';
 
+    topbar.appendChild(projectId);
     topbar.appendChild(scoreContainer);
     topbar.appendChild(goldContainer);
     topbar.appendChild(restart);
@@ -67,7 +71,10 @@
     message.className = 'hidden';
     message.innerHTML = `
       <div class="game-over-text">Game Over</div>
-      <button id="restart-gameover" class="restart-btn">Restart</button>
+      <div class="game-over-buttons">
+        <button id="respawn-btn" class="respawn-btn">Respawn (100 Gold)</button>
+        <button id="restart-gameover" class="restart-btn">Restart</button>
+      </div>
     `;
 
     const settings = document.createElement('div');
@@ -110,6 +117,11 @@
         <span class="powerup-label">CLICK FAST!</span>
         <span id="clicker-text" class="powerup-timer"></span>
       </div>
+      <div id="immunity-status" class="powerup-status hidden">
+        <span class="powerup-icon">✨</span>
+        <span class="powerup-label">Immunity</span>
+        <span id="immunity-timer" class="powerup-timer">3s</span>
+      </div>
     `;
 
     const startScreen = document.createElement('div');
@@ -128,19 +140,25 @@
     flapButton.innerHTML = '⬆️';
     flapButton.setAttribute('aria-label', 'Flap');
 
+    const countdown = document.createElement('div');
+    countdown.id = 'countdown';
+    countdown.className = 'hidden';
+    countdown.innerHTML = '<div class="countdown-number">3</div>';
+
     ui.appendChild(topbar);
     ui.appendChild(powerUps);
     ui.appendChild(message);
     ui.appendChild(settings);
-    ui.appendChild(heightBar);
     ui.appendChild(startScreen);
     ui.appendChild(flapButton);
+    ui.appendChild(countdown);
     document.body.appendChild(ui);
 
     const scoreValue = document.getElementById('score-value');
     const goldValue = document.getElementById('gold-value');
+    const highscoreValue = document.getElementById('highscore-value');
 
-    return { sceneEl, ui, scoreValue, goldValue, restart, message, powerUps, settings, heightBar, startScreen, flapButton };
+    return { sceneEl, ui, scoreValue, goldValue, highscoreValue, restart, message, powerUps, settings, startScreen, flapButton, countdown };
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -168,8 +186,14 @@
     let gameOver = false;
     let isPaused = false;
     let scoreVal = 0;
-    let goldVal = 0;
+    let goldVal = parseInt(localStorage.getItem('sharkGold') || '0');
+    let highScore = parseInt(localStorage.getItem('sharkHighScore') || '0');
+    let deathPosition = null; // Store position for respawn
     let graphicsMode = 'prototype'; // 'prototype' or 'full'
+    
+    // Display initial values
+    els.highscoreValue.textContent = highScore;
+    els.goldValue.textContent = goldVal;
 
     // Patch SceneManager's update to include bird physics
     const origUpdate = scene.update.bind(scene);
@@ -227,10 +251,10 @@
         els.scoreValue.textContent = scoreVal;
         
         // Update height bar UI with 100m tiers
-        const heightIndicator = els.heightBar.querySelector('.height-indicator');
-        const heightValue = els.heightBar.querySelector('.height-value');
-        const heightTrack = els.heightBar.querySelector('.height-bar-track');
-        if (heightIndicator && heightValue && heightTrack) {
+        const heightIndicator = els.heightBar?.querySelector('.height-indicator');
+        const heightValue = els.heightBar?.querySelector('.height-value');
+        const heightTrack = els.heightBar?.querySelector('.height-bar-track');
+        if (heightIndicator?.style && heightValue && heightTrack) {
           // Calculate tier (0-100m = tier 0, 100-200m = tier 1, etc.)
           const tier = Math.floor(totalHeight / 100);
           const heightInTier = totalHeight % 100; // Height within current 100m range
@@ -312,6 +336,10 @@
       const t = Math.random() * 1.0; // uniform distribution for more variance
       const gapY = minGapY + (maxGapY - minGapY) * t;
 
+      // 20% chance to create a moving obstacle
+      const isMoving = Math.random() < 0.2;
+      const obstacleColor = isMoving ? 0xff8800 : 0x2ecc40; // Orange for moving, green for static
+
       const obs = new Obstacle({
         gapY,
         gapHeight,
@@ -319,7 +347,10 @@
         width: 1.5, // match obstacle.js
         depth: 1.2,
         height: 30, // much taller so top is offscreen
-        color: 0x2ecc40
+        color: obstacleColor,
+        addBonusHole: true, // Enable bonus holes
+        isMoving: isMoving,
+        graphicsMode: graphicsMode
       });
       // Spawn obstacles already offset by current level rise
       obs.group.position.y = levelRiseY;
@@ -378,23 +409,167 @@
       moveTimer = setInterval(moveObstacles, 1000 / 60);
       if (environmentTimer) clearInterval(environmentTimer);
       environmentTimer = setInterval(spawnEnvironment, 2000);
+      console.log('Started obstacles and environment spawning');
     }
     function stopObstacles() {
-      if (obstacleTimer) clearInterval(obstacleTimer);
-      if (moveTimer) clearInterval(moveTimer);
-      if (environmentTimer) clearInterval(environmentTimer);
-      obstacleTimer = null;
-      moveTimer = null;
-      environmentTimer = null;
+      if (obstacleTimer) {
+        clearInterval(obstacleTimer);
+        obstacleTimer = null;
+      }
+      if (moveTimer) {
+        clearInterval(moveTimer);
+        moveTimer = null;
+      }
+      if (environmentTimer) {
+        clearInterval(environmentTimer);
+        environmentTimer = null;
+      }
       for (const obs of obstacles) obs.dispose();
       obstacles.length = 0;
     }
 
     // --- Environment spawning (islands and rocks) ---
+    // Helper to spawn a single rock
+    function spawnRock(x, z) {
+      const size = 0.3 + Math.random() * 0.5;
+      const rockGeo = new THREE.DodecahedronGeometry(size, 0);
+      const rockMat = new THREE.MeshStandardMaterial({
+        color: 0x3a3a3a,
+        roughness: 0.9,
+        metalness: 0.1
+      });
+      const rock = new THREE.Mesh(rockGeo, rockMat);
+      
+      rock.position.set(x, size * 0.3, z);
+      
+      rock.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      
+      rock.castShadow = true;
+      rock.receiveShadow = true;
+      scene.scene.add(rock);
+      scene.rocks.push(rock);
+      return rock;
+    }
+
+    // Helper to spawn a single island
+    function spawnIsland(x, z) {
+      const islandGroup = new THREE.Group();
+      const islandSize = 2 + Math.random() * 3;
+      
+      const sandMat = new THREE.MeshStandardMaterial({
+        color: 0xf4e4c1,
+        roughness: 0.9
+      });
+      const islandGeo = new THREE.CylinderGeometry(islandSize, islandSize * 0.8, 0.4, 8);
+      const island = new THREE.Mesh(islandGeo, sandMat);
+      island.position.y = 0.2;
+      islandGroup.add(island);
+      
+      const greenMat = new THREE.MeshStandardMaterial({
+        color: 0x6b8e23,
+        roughness: 0.8
+      });
+      const greenGeo = new THREE.ConeGeometry(islandSize * 0.6, islandSize * 0.5, 6);
+      const greenery = new THREE.Mesh(greenGeo, greenMat);
+      greenery.position.y = 0.6;
+      islandGroup.add(greenery);
+      
+      islandGroup.position.set(x, 0, z);
+      
+      islandGroup.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+        }
+      });
+      
+      scene.scene.add(islandGroup);
+      scene.islands.push(islandGroup);
+      return islandGroup;
+    }
+
+    function spawnInitialEnvironment() {
+      // Spawn abundant initial rocks (30)
+      for (let i = 0; i < 30; i++) {
+        const x = -20 + Math.random() * 60;
+        const z = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 7);
+        spawnRock(x, z);
+      }
+      
+      // Spawn initial islands (8)
+      for (let i = 0; i < 8; i++) {
+        const x = -30 + Math.random() * 80;
+        const z = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 12);
+        spawnIsland(x, z);
+      }
+      console.log('Spawned initial environment: 30 rocks, 8 islands');
+    }
+
+    // Continuously spawn environment objects ahead of the player
+    let lastEnvironmentSpawnX = 50; // Track rightmost spawn position
+    function spawnEnvironmentObjects() {
+      if (!scene.cube || !gameStarted || gameOver) return;
+      
+      const playerX = scene.cube.position.x;
+      const spawnAheadDistance = 30; // Spawn objects 30 units ahead
+      const targetSpawnX = playerX + spawnAheadDistance;
+      
+      // Spawn new objects if we need to extend the environment
+      while (lastEnvironmentSpawnX < targetSpawnX) {
+        // Spawn 2-4 rocks
+        const numRocks = 2 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < numRocks; i++) {
+          const x = lastEnvironmentSpawnX + Math.random() * 3;
+          const z = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 7);
+          spawnRock(x, z);
+        }
+        
+        // 40% chance to spawn an island
+        if (Math.random() < 0.4) {
+          const x = lastEnvironmentSpawnX + Math.random() * 5;
+          const z = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 12);
+          spawnIsland(x, z);
+        }
+        
+        lastEnvironmentSpawnX += 5 + Math.random() * 5; // Space them out
+      }
+      
+      // Clean up rocks that are far behind the player
+      for (let i = scene.rocks.length - 1; i >= 0; i--) {
+        const rock = scene.rocks[i];
+        if (rock.position.x < playerX - 30) {
+          scene.scene.remove(rock);
+          rock.geometry.dispose();
+          rock.material.dispose();
+          scene.rocks.splice(i, 1);
+        }
+      }
+      
+      // Clean up islands that are far behind the player
+      for (let i = scene.islands.length - 1; i >= 0; i--) {
+        const island = scene.islands[i];
+        if (island.position.x < playerX - 30) {
+          island.traverse((obj) => {
+            if (obj.isMesh) {
+              obj.geometry.dispose();
+              obj.material.dispose();
+            }
+          });
+          scene.scene.remove(island);
+          scene.islands.splice(i, 1);
+        }
+      }
+    }
+    
     function spawnEnvironment() {
       // Ensure arrays exist
       if (!scene.rocks) scene.rocks = [];
       if (!scene.islands) scene.islands = [];
+      console.log('spawnEnvironment called, rocks:', scene.rocks.length, 'islands:', scene.islands.length);
       
       // 30% chance to spawn a rock
       if (Math.random() < 0.3) {
@@ -409,7 +584,7 @@
         
         const x = PLAY_WIDTH + 5;
         const z = (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 7);
-        rock.position.set(x, levelRiseY + size * 0.3, z);
+        rock.position.set(x, size * 0.3, z); // Spawn at sea level
         
         rock.rotation.set(
           Math.random() * Math.PI,
@@ -518,7 +693,7 @@
         
         const x = PLAY_WIDTH + 8;
         const z = (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 12);
-        islandGroup.position.set(x, levelRiseY, z);
+        islandGroup.position.set(x, 0, z); // Spawn at sea level
         
         islandGroup.traverse((obj) => {
           if (obj.isMesh) {
@@ -532,10 +707,8 @@
       }
     }
 
-    // Environment timer variable
     let environmentTimer = null;
 
-    // --- Coin logic ---
     const coins = [];
     const COIN_RADIUS = 0.35; // match Coin default
     const COIN_THICKNESS = 0.18; // match Coin default
@@ -543,7 +716,6 @@
     const COIN_SCORE = 5;
     const MAX_COINS = 30; // Limit to prevent framerate drops
 
-    // --- Power-up items ---
     const items = [];
     const ITEM_COLLECTION_RADIUS = 0.6;
     let obstacleBreakerActive = false;
@@ -553,8 +725,9 @@
     let coinFeverTimer = 0;
     const COIN_FEVER_DURATION = 8; // seconds
     let coinFeverSpawnTimer = 0;
-    let clickerActive = false;
-    let clickerTargetObstacle = null;
+    let immunityActive = false;
+    let immunityTimer = 0;
+    const IMMUNITY_DURATION = 3; // seconds
 
     function spawnCoin(x, y, z = 0) {
       const coin = new Coin({ x, y, z, graphicsMode });
@@ -592,11 +765,12 @@
     function moveCoins(dx) {
       for (let i = coins.length - 1; i >= 0; --i) {
         const coin = coins[i];
+        if (!coin || !coin.mesh) continue;
         coin.mesh.position.x += dx;
         if (coin.mesh.position.x < -PLAY_WIDTH - 2) {
           scene.scene.remove(coin.mesh);
-          coin.mesh.geometry.dispose();
-          coin.mesh.material.dispose();
+          if (coin.mesh.geometry) coin.mesh.geometry.dispose();
+          if (coin.mesh.material) coin.mesh.material.dispose();
           coins.splice(i, 1);
         }
       }
@@ -617,6 +791,7 @@
         if (d < COIN_RADIUS + 0.3) { // collision threshold
           coin.collect();
           goldVal += COIN_SCORE;
+          localStorage.setItem('sharkGold', goldVal.toString());
           els.goldValue.textContent = goldVal;
         }
       }
@@ -643,56 +818,9 @@
         coinFeverActive = true;
         coinFeverTimer = COIN_FEVER_DURATION;
         coinFeverSpawnTimer = 0;
-      } else if (type === 'clicker') {
-        clickerActive = true;
-        document.getElementById('clicker-status').classList.remove('hidden');
-        
-        // Find the next obstacle ahead of the player
-        if (scene.cube) {
-          const playerX = scene.cube.position.x;
-          const nextObs = obstacles.find(obs => obs.group.position.x > playerX + 2);
-          if (nextObs) {
-            clickerTargetObstacle = nextObs;
-            // Rapidly move gap up by 3 units
-            const targetGapY = Math.min(PLAY_HEIGHT + 5, nextObs.gapY + 10);
-            animateGapUp(nextObs, targetGapY);
-          }
-        }
       }
     }
 
-    function animateGapUp(obstacle, targetY) {
-      const startY = obstacle.gapY;
-      const duration = 0.5; // seconds
-      let elapsed = 0;
-      
-      const animate = (dt) => {
-        if (!clickerActive) return;
-        elapsed += dt;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Ease out animation
-        const eased = 1 - Math.pow(1 - progress, 3);
-        obstacle.gapY = startY + (targetY - startY) * eased;
-        
-        // Update pipe positions
-        const topHeight = Math.max(0.1, obstacle.height - (obstacle.gapY + obstacle.gapHeight / 2));
-        obstacle.topPipe.position.y = obstacle.gapY + obstacle.gapHeight / 2 + topHeight / 2;
-        
-        const bottomY = obstacle.gapY - obstacle.gapHeight / 2;
-        const bottomHeight = Math.max(0.1, bottomY);
-        obstacle.bottomPipe.scale.y = bottomHeight / obstacle.gapHeight;
-        obstacle.bottomPipe.position.y = bottomHeight / 2;
-        
-        if (progress < 1) {
-          requestAnimationFrame(() => animate(dt));
-        }
-      };
-      
-      requestAnimationFrame(() => animate(0.016));
-    }
-
-    // --- Settings / Pause functionality ---
     function openSettings() {
       if (gameOver) return;
       isPaused = true;
@@ -700,27 +828,30 @@
     }
 
     function closeSettings() {
-      isPaused = false;
       els.settings.classList.add('hidden');
+      
+      if (gameStarted && !gameOver) {
+        showCountdown(() => {
+          isPaused = false;
+        });
+      } else {
+        isPaused = false;
+      }
     }
 
     function resetGame() {
-      // Clear coins
       for (const coin of coins) {
         scene.scene.remove(coin.mesh);
       }
       coins.length = 0;
       
-      // Clear items
       for (const item of items) {
         item.dispose();
       }
       items.length = 0;
       
-      // Clear obstacles
       stopObstacles();
       
-      // Clear rocks
       if (scene.rocks) {
         for (const rock of scene.rocks) {
           scene.scene.remove(rock);
@@ -730,7 +861,6 @@
         scene.rocks.length = 0;
       }
       
-      // Clear islands
       if (scene.islands) {
         for (const island of scene.islands) {
           island.traverse((obj) => {
@@ -744,23 +874,30 @@
         scene.islands.length = 0;
       }
       
-      // Reset power-ups
+      spawnInitialEnvironment();
+      lastEnvironmentSpawnX = 50; 
+      
       obstacleBreakerActive = false;
       obstacleBreakerTimer = 0;
       coinFeverActive = false;
       coinFeverTimer = 0;
-      clickerActive = false;
-      clickerTargetObstacle = null;
+      immunityActive = false;
+      immunityTimer = 0;
       document.getElementById('breaker-status').classList.add('hidden');
       document.getElementById('fever-status').classList.add('hidden');
-      document.getElementById('clicker-status').classList.add('hidden');
+      document.getElementById('immunity-status').classList.add('hidden');
       
       // Reset bird
       if (scene && scene.cube) {
-        scene.cube.rotation.set(0, 0, 0);
+        // Set correct rotation based on graphics mode
+        if (graphicsMode === 'prototype') {
+          scene.cube.rotation.set(0, 0, Math.PI / 2); // Cone points forward
+        } else {
+          scene.cube.rotation.set(0, Math.PI / 2, 0); // Shark faces forward (Y rotation)
+        }
         birdY = PLAY_HEIGHT / 2;
         birdVY = 0;
-        scene.cube.position.y = birdY;
+        scene.cube.position.set(0, birdY, 0); // Reset x, y, and z positions
       }
       
       // Reset game state
@@ -768,11 +905,10 @@
       gameOver = false;
       isPaused = false;
       scoreVal = 0;
-      goldVal = 0;
       levelRiseY = 0;
       lastObstacleX = null;
       els.scoreValue.textContent = '0';
-      els.goldValue.textContent = '0';
+      els.goldValue.textContent = goldVal;
       els.message.classList.add('hidden');
       els.settings.classList.add('hidden');
       
@@ -808,6 +944,7 @@
         document.getElementById('mode-full').classList.remove('active');
         scene.setGraphicsMode('prototype');
         recreateCoins();
+        recreateObstacles();
       }
     });
 
@@ -818,6 +955,7 @@
         document.getElementById('mode-prototype').classList.remove('active');
         scene.setGraphicsMode('full');
         recreateCoins();
+        recreateObstacles();
       }
     });
 
@@ -856,25 +994,156 @@
       }
     }
 
-    // Game over restart button - use event delegation on message container
-    els.message.addEventListener('click', (e) => {
-      if (e.target.id === 'restart-gameover' || e.target.closest('#restart-gameover')) {
-        e.preventDefault();
-        e.stopPropagation();
-        resetGame();
+    function recreateObstacles() {
+      // Store data of existing obstacles
+      const obstacleData = obstacles.map(obs => ({
+        x: obs.group.position.x,
+        y: obs.group.position.y,
+        gapY: obs.gapY,
+        gapHeight: obs.gapHeight,
+        isMoving: obs.isMoving,
+        bonusHoleCollected: obs.bonusHoleCollected,
+        hasBonusHole: obs.bonusHole !== null
+      }));
+
+      // Remove old obstacles
+      for (const obs of obstacles) {
+        obs.dispose();
       }
-    });
+      obstacles.length = 0;
+
+      // Recreate obstacles with new graphics mode
+      for (const data of obstacleData) {
+        const obstacleColor = data.isMoving ? 0xff8800 : 0x2ecc40;
+        const obs = new Obstacle({
+          gapY: data.gapY,
+          gapHeight: data.gapHeight,
+          x: data.x,
+          width: 1.5,
+          depth: 1.2,
+          height: 30,
+          color: obstacleColor,
+          addBonusHole: data.hasBonusHole,
+          isMoving: data.isMoving,
+          graphicsMode: graphicsMode
+        });
+        obs.group.position.x = data.x;
+        obs.group.position.y = data.y;
+        if (data.bonusHoleCollected && obs.bonusHole) {
+          obs.bonusHoleCollected = true;
+          obs.bonusHole.visible = false;
+        }
+        scene.scene.add(obs.group);
+        obstacles.push(obs);
+      }
+    }
+
+    // Countdown display function
+    function showCountdown(callback) {
+      const countdownEl = els.countdown;
+      const countdownNumber = countdownEl.querySelector('.countdown-number');
+      
+      let count = 3;
+      countdownNumber.textContent = count;
+      countdownEl.classList.remove('hidden');
+      
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNumber.textContent = count;
+        } else {
+          clearInterval(interval);
+          countdownEl.classList.add('hidden');
+          if (callback) callback();
+        }
+      }, 1000);
+    }
+
+    // Game over restart button - direct button access after DOM is ready
+    setTimeout(() => {
+      const restartBtn = document.getElementById('restart-gameover');
+      if (restartBtn) {
+        console.log('Restart button found:', restartBtn);
+        restartBtn.addEventListener('click', (e) => {
+          console.log('Game over restart clicked');
+          e.preventDefault();
+          e.stopPropagation();
+          resetGame();
+        });
+      } else {
+        console.error('Restart button not found');
+      }
+      
+      // Respawn button handler
+      const respawnBtn = document.getElementById('respawn-btn');
+      if (respawnBtn) {
+        respawnBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Check if player has enough gold
+          if (goldVal < 100) {
+            return; // Button should already be disabled, but double-check
+          }
+          
+          // Deduct gold cost
+          goldVal -= 100;
+          localStorage.setItem('sharkGold', goldVal.toString());
+          els.goldValue.textContent = goldVal;
+          
+          // Hide game over screen
+          els.message.classList.add('hidden');
+          
+          // Show countdown then respawn
+          showCountdown(() => {
+            if (deathPosition && scene.cube) {
+              // Restore position
+              scene.cube.position.set(deathPosition.x, deathPosition.y, deathPosition.z);
+              birdVY = deathPosition.vY;
+              levelRiseY = deathPosition.levelRiseY;
+              
+              // Resume game
+              gameOver = false;
+              gameStarted = true;
+              startObstacles();
+            }
+          });
+        });
+      }
+    }, 100);
 
     // --- Pipe collision detection ---
     const COLLISION_RADIUS = 0.25; // Tighter shark collision radius
 
     function checkPipeCollision() {
-      if (!gameStarted || !scene.cube || gameOver || obstacleBreakerActive) return;
+      if (!gameStarted || !scene.cube || gameOver || obstacleBreakerActive || immunityActive) return;
       const sharkPos = scene.cube.position;
 
       for (const obs of obstacles) {
         const obsX = obs.group.position.x;
         const obsY = obs.group.position.y;
+        
+        // Check bonus hole collision first
+        if (obs.bonusHole && !obs.bonusHoleCollected) {
+          const holeWorldY = obsY + obs.bonusHole.y;
+          const holeDistX = Math.abs(sharkPos.x - obsX);
+          const holeDistY = Math.abs(sharkPos.y - holeWorldY);
+          const holeDistZ = Math.abs(sharkPos.z - obs.group.position.z);
+          
+          // Check if player passes through the bonus hole
+          if (holeDistX < obs.bonusHole.radius && 
+              holeDistY < obs.bonusHole.radius && 
+              holeDistZ < obs.bonusHole.radius) {
+            // Grant immunity and bonus points
+            obs.bonusHoleCollected = true;
+            immunityActive = true;
+            immunityTimer = IMMUNITY_DURATION;
+            scoreVal += 100;
+            els.scoreValue.textContent = scoreVal;
+            // Visual feedback - make hole disappear
+            obs.bonusHole.mesh.visible = false;
+          }
+        }
         
         // Only check obstacles that are close to the shark on X-axis
         const xDist = Math.abs(sharkPos.x - obsX);
@@ -900,13 +1169,6 @@
             triggerGameOver();
             return;
           }
-          
-          // If this is the clicker target obstacle and we made it through, deactivate clicker
-          if (clickerActive && obs === clickerTargetObstacle && sharkPos.x > obsX) {
-            clickerActive = false;
-            clickerTargetObstacle = null;
-            document.getElementById('clicker-status').classList.add('hidden');
-          }
         }
       }
       
@@ -919,6 +1181,37 @@
     function triggerGameOver() {
       if (gameOver) return;
       gameOver = true;
+      
+      // Save death position for respawn
+      if (scene.cube) {
+        deathPosition = {
+          x: scene.cube.position.x,
+          y: scene.cube.position.y,
+          z: scene.cube.position.z,
+          vY: birdVY,
+          levelRiseY: levelRiseY
+        };
+      }
+      
+      // Check and update high score
+      if (scoreVal > highScore) {
+        highScore = scoreVal;
+        localStorage.setItem('sharkHighScore', highScore.toString());
+        els.highscoreValue.textContent = highScore;
+      }
+      
+      // Enable/disable respawn based on gold
+      const respawnBtn = document.getElementById('respawn-btn');
+      if (respawnBtn) {
+        if (goldVal >= 100) {
+          respawnBtn.disabled = false;
+          respawnBtn.textContent = 'Respawn (100 Gold)';
+        } else {
+          respawnBtn.disabled = true;
+          respawnBtn.textContent = `Respawn (Need ${100 - goldVal} more gold)`;
+        }
+      }
+      
       els.message.classList.remove('hidden');
       stopObstacles();
     }
@@ -933,21 +1226,13 @@
         const obs = obstacles[obstacles.length - 1];
         const gapY = obs.gapY || (PLAY_HEIGHT / 2);
         const x = obs.group.position.x ; // centered between front/back of pipes
+        // Add the obstacle's Y offset to get world position
         const y = obs.group.position.y + gapY;
         const z = 0.0; // slightly towards camera
         spawnCoin(x, y, z);
         
-        // 10% chance to spawn clicker item at gap opening - offset to side and ahead so it doesn't overlap coin
-        if (Math.random() < 0.1) {
-          const itemX = x + 0.8; // Place ahead of the coin
-          const itemZ = (Math.random() < 0.5 ? -1 : 1) * 0.8; // Offset to left or right
-          const item = new Item({ type: 'clicker', x: itemX, y: itemY, z: itemZ });
-          item.baseY = itemY;
-          scene.scene.add(item.mesh);
-          items.push(item);
-        }
-        // 5% chance to spawn other power-up items
-        else if (Math.random() < 0.05) {
+        // 5% chance to spawn power-up items
+        if (Math.random() < 0.05) {
           const itemX = x + 1.5; // Place slightly ahead
           const itemY = y + (Math.random() - 0.5) * 1.5; // Randomize height a bit
           spawnItem(itemX, itemY, z);
@@ -962,6 +1247,11 @@
       if (isPaused || gameOver) return;
       origMoveObstacles();
       moveCoins(OBSTACLE_SPEED);
+      
+      // Update moving obstacles
+      for (const obs of obstacles) {
+        obs.update(0.016);
+      }
     }
     moveObstacles = moveObstaclesWithCoins;
 
@@ -992,6 +1282,9 @@
       checkCoinCollision();
       checkItemCollision();
       checkPipeCollision();
+      
+      // Spawn environment objects continuously
+      spawnEnvironmentObjects();
       
       // Update power-up timers
       if (obstacleBreakerActive) {
@@ -1037,10 +1330,15 @@
         if (coinFeverSpawnTimer > 0.3 && coins.length < MAX_COINS) { // Every 0.3 seconds
           coinFeverSpawnTimer = 0;
           
-          // Spawn coins at obstacle gap positions
-          if (obstacles.length > 0) {
-            // Pick a random obstacle that's ahead
-            const validObstacles = obstacles.filter(obs => obs.group.position.x > 0);
+          // Spawn coins at obstacle gap positions, prioritizing obstacles near the player
+          if (obstacles.length > 0 && scene.cube) {
+            const playerX = scene.cube.position.x;
+            // Pick obstacles that are ahead of player but not too far
+            const validObstacles = obstacles.filter(obs => {
+              const obsX = obs.group.position.x;
+              return obsX > playerX - 2 && obsX < playerX + 15;
+            });
+            
             if (validObstacles.length > 0) {
               const obs = validObstacles[Math.floor(Math.random() * validObstacles.length)];
               const x = obs.group.position.x + (Math.random() - 0.5) * 1.5;
@@ -1058,6 +1356,20 @@
           document.getElementById('fever-status').classList.add('hidden');
         }
       }
+      
+      // Update immunity timer
+      if (immunityActive) {
+        immunityTimer -= dt;
+        
+        document.getElementById('immunity-status').classList.remove('hidden');
+        document.getElementById('immunity-timer').textContent = Math.ceil(immunityTimer) + 's';
+        
+        if (immunityTimer <= 0) {
+          immunityActive = false;
+          immunityTimer = 0;
+          document.getElementById('immunity-status').classList.add('hidden');
+        }
+      }
     };
 
     // Start game button
@@ -1067,6 +1379,7 @@
 
     // Top bar restart button
     els.restart.addEventListener('click', () => {
+      console.log('Restart button clicked');
       resetGame();
     });
 

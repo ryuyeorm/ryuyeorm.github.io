@@ -36,17 +36,6 @@ export class Item {
       });
       this.mesh = new THREE.Mesh(geometry, material);
       this.mesh.rotation.x = Math.PI / 2; // Lay flat like a coin
-    } else if (type === 'clicker') {
-      // Green pulsing sphere
-      const geometry = new THREE.SphereGeometry(0.4, 32, 32);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0x00ff44,
-        emissive: 0x00ff00,
-        emissiveIntensity: 0.9,
-        metalness: 0.5,
-        roughness: 0.3
-      });
-      this.mesh = new THREE.Mesh(geometry, material);
     }
 
     this.mesh.position.set(x, y, z);
@@ -71,11 +60,6 @@ export class Item {
       this.mesh.rotation.x += dt * 1.5;
     } else if (this.type === 'coin-fever') {
       this.mesh.rotation.z += dt * 3;
-    } else if (this.type === 'clicker') {
-      this.mesh.rotation.y += dt * 4;
-      // Pulsing scale effect
-      const pulse = 1 + Math.sin(this.time * 5) * 0.1;
-      this.mesh.scale.set(pulse, pulse, pulse);
     }
   }
 
