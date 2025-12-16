@@ -2,15 +2,18 @@ import * as THREE from '../lib/three.js/build/three.module.js';
 import { GLTFLoader } from '../lib/three.js/examples/jsm/loaders/GLTFLoader.js';
 
 export class Coin {
-  constructor({ x = 0, y = 2, z = 0 } = {}) {
+  constructor({ x = 0, y = 2, z = 0, graphicsMode = 'prototype' } = {}) {
     this.mesh = new THREE.Object3D();
     this.mesh.position.set(x, y, z);
     this.collected = false;
+    this.graphicsMode = graphicsMode;
 
-    const loader = new GLTFLoader();
-    loader.load(
-      'scene/coin.glb',
-      (gltf) => {
+    if (graphicsMode === 'full') {
+      // Full mode: load GLTF model
+      const loader = new GLTFLoader();
+      loader.load(
+        'scene/coin.glb',
+        (gltf) => {
         const model = gltf.scene || gltf.scenes[0];
         if (!model) return;
 
@@ -43,14 +46,35 @@ export class Coin {
           }
         });
 
-        console.log('Coin GLB loaded');
         this.mesh.add(model);
       },
       undefined,
       (err) => {
         console.warn('Failed to load coin.glb', err);
+        this._createPrototypeCoin();
       }
     );
+    } else {
+      // Prototype mode: simple geometry
+      this._createPrototypeCoin();
+    }
+  }
+
+  _createPrototypeCoin() {
+    // Create a simple cylinder for the coin
+    const geometry = new THREE.CylinderGeometry(0.35, 0.35, 0.15, 16);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      metalness: 0.8,
+      roughness: 0.3,
+      emissive: 0xffd700,
+      emissiveIntensity: 0.4
+    });
+    const coin = new THREE.Mesh(geometry, material);
+    coin.rotation.z = Math.PI / 2; // Make it stand upright
+    coin.castShadow = true;
+    coin.receiveShadow = true;
+    this.mesh.add(coin);
   }
 
   update(dt) {

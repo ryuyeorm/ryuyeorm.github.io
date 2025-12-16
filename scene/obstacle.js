@@ -37,13 +37,13 @@ export class Obstacle {
     this.topPipe.position.set(0, gapY + gapHeight / 2 + topHeight / 2, 0);
     this.group.add(this.topPipe);
 
-    // Bottom pipe: always extends from ground (y=0) to bottom of gap
+    // Bottom pipe: extends far below to hide the bottom end
     const bottomY = gapY - gapHeight / 2;
-    const bottomHeight = Math.max(0.1, bottomY);
+    const bottomHeight = bottomY + 100; // Extend 100 units down from bottom of gap
     const geoBottom = new THREE.BoxGeometry(width, bottomHeight, depth);
     this.bottomPipe = new THREE.Mesh(geoBottom, mat.clone());
-    // Position so bottom sits at y=0
-    this.bottomPipe.position.set(0, bottomHeight / 2, 0);
+    // Position so top of bottom pipe is at bottom of gap
+    this.bottomPipe.position.set(0, bottomY - bottomHeight / 2, 0);
     this.group.add(this.bottomPipe);
 
     // Set initial position

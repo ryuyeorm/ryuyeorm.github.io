@@ -13,6 +13,7 @@ export class SceneManager {
     this._rafId = null;
     this._running = false;
 
+    this.graphicsMode = 'prototype'; // 'prototype' or 'full'
     this._init();
   }
 
@@ -43,31 +44,9 @@ export class SceneManager {
     this.dayTime = 0;
     this.TIME_CYCLE = 120; // 2 minutes for full day cycle
 
-    // --- Random clouds using cloud.png ---
+    // --- Random clouds ---
     this.clouds = [];
-    const cloudTexture = new THREE.TextureLoader().load('scene/cloud.png');
-    cloudTexture.encoding = THREE.sRGBEncoding;
-
-    const CLOUD_COUNT = 20;
-    for (let i = 0; i < CLOUD_COUNT; i++) {
-      const cloudMat = new THREE.SpriteMaterial({
-        map: cloudTexture,
-        transparent: true,
-        depthWrite: false
-      });
-      const cloud = new THREE.Sprite(cloudMat);
-
-      const size = 4 + Math.random() * 4; // width
-      cloud.scale.set(size, size * 0.6, 1);
-
-      const x = Math.random() * 40; // spread ahead
-      const y = 4 + Math.random() * 15; // in the sky
-      const z = -8 + Math.random() * 14; // behind the action
-      cloud.position.set(x, y, z);
-
-      this.clouds.push(cloud);
-      this.scene.add(cloud);
-    }
+    this._createClouds();
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 1000);
@@ -185,40 +164,9 @@ export class SceneManager {
       this.islands.push(islandGroup);
     }
 
-    // Player object — load shark GLTF model (replaces demo bird cube)
+    // Player object
     this.cube = null;
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load(
-      'scene/shark/scene.gltf',
-      (gltf) => {
-        const shark = gltf.scene || gltf.scenes?.[0];
-        if (!shark) return;
-
-        // Reasonable default transform for the shark
-        shark.scale.set(0.6, 0.6, 0.6);
-        shark.position.set(0, 0.6, 0);
-
-        shark.traverse((obj) => {
-          if (obj.isMesh) {
-            obj.castShadow = true;
-            obj.receiveShadow = true;
-          }
-        });
-
-        this.cube = shark;
-        this.scene.add(shark);
-      },
-      undefined,
-      (error) => {
-        console.error('Failed to load shark model, falling back to cube', error);
-        const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xff7b00 });
-        const fallback = new THREE.Mesh(geo, mat);
-        fallback.position.y = 0.25;
-        this.cube = fallback;
-        this.scene.add(fallback);
-      }
-    );
+    this._createPlayer();
 
     // Clock
     this.clock = new THREE.Clock();
@@ -364,6 +312,147 @@ export class SceneManager {
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.width, this.height);
+  }
+
+  _createClouds() {
+    // Clear existing clouds
+    for (const cloud of this.clouds) {
+      this.scene.remove(cloud);
+      if (cloud.material) cloud.material.dispose();
+      if (cloud.geometry) cloud.geometry.dispose();
+    }
+    this.clouds = [];
+
+    const CLOUD_COUNT = 20;
+    
+    if (this.graphicsMode === 'full') {
+      // Full mode: use cloud texture
+      const cloudTexture = new THREE.TextureLoader().load('scene/cloud.png');
+      cloudTexture.encoding = THREE.sRGBEncoding;
+
+      for (let i = 0; i < CLOUD_COUNT; i++) {
+        const cloudMat = new THREE.SpriteMaterial({
+          map: cloudTexture,
+          transparent: true,
+          depthWrite: false
+        });
+        const cloud = new THREE.Sprite(cloudMat);
+
+        const size = 4 + Math.random() * 4;
+        cloud.scale.set(size, size * 0.6, 1);
+
+        const x = Math.random() * 40;
+        const y = 4 + Math.random() * 15;
+        const z = -8 + Math.random() * 14;
+        cloud.position.set(x, y, z);
+
+        this.clouds.push(cloud);
+        this.scene.add(cloud);
+      }
+    } else {
+      // Prototype mode: simple white spheres
+      for (let i = 0; i < CLOUD_COUNT; i++) {
+        const cloudGeo = new THREE.SphereGeometry(2 + Math.random() * 2, 8, 8);
+        const cloudMat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.7
+        });
+        const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+
+        const x = Math.random() * 40;
+        const y = 4 + Math.random() * 15;
+        const z = -8 + Math.random() * 14;
+        cloud.position.set(x, y, z);
+
+        this.clouds.push(cloud);
+        this.scene.add(cloud);
+      }
+    }
+  }
+
+  _createPlayer() {
+    // Remove existing player
+    if (this.cube) {
+      this.scene.remove(this.cube);
+      if (this.cube.traverse) {
+        this.cube.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(mat => mat.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      this.cube = null;
+    }
+
+    if (this.graphicsMode === 'full') {
+      // Full mode: load shark GLTF model
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.load(
+        'scene/shark/scene.gltf',
+        (gltf) => {
+          const shark = gltf.scene || gltf.scenes?.[0];
+          if (!shark) return;
+
+          shark.scale.set(0.6, 0.6, 0.6);
+          shark.position.set(0, 0.6, 0);
+
+          shark.traverse((obj) => {
+            if (obj.isMesh) {
+              obj.castShadow = true;
+              obj.receiveShadow = true;
+            }
+          });
+
+          this.cube = shark;
+          this.scene.add(shark);
+        },
+        undefined,
+        (error) => {
+          console.error('Failed to load shark model, falling back to cube', error);
+          this._createPrototypePlayer();
+        }
+      );
+    } else {
+      // Prototype mode: simple geometry
+      this._createPrototypePlayer();
+    }
+  }
+
+  _createPrototypePlayer() {
+    const geo = new THREE.ConeGeometry(0.3, 0.8, 8);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x00aaff });
+    const player = new THREE.Mesh(geo, mat);
+    player.rotation.z = Math.PI / 2; // Point forward
+    player.position.y = 0.4;
+    player.castShadow = true;
+    player.receiveShadow = true;
+    this.cube = player;
+    this.scene.add(player);
+  }
+
+  setGraphicsMode(mode) {
+    if (this.graphicsMode === mode) return;
+    this.graphicsMode = mode;
+    
+    // Recreate clouds and player with new mode
+    this._createClouds();
+    
+    const oldPos = this.cube ? { x: this.cube.position.x, y: this.cube.position.y, z: this.cube.position.z } : { x: 0, y: 0.4, z: 0 };
+    const oldRot = this.cube ? { x: this.cube.rotation.x, y: this.cube.rotation.y, z: this.cube.rotation.z } : { x: 0, y: 0, z: 0 };
+    
+    this._createPlayer();
+    
+    // Restore position after recreation
+    if (this.cube) {
+      this.cube.position.set(oldPos.x, oldPos.y, oldPos.z);
+      this.cube.rotation.set(oldRot.x, oldRot.y, oldRot.z);
+    }
   }
 
   dispose() {

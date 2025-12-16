@@ -76,6 +76,14 @@
     settings.innerHTML = `
       <div class="settings-panel">
         <h2 class="settings-title">Settings</h2>
+        <div class="settings-section">
+          <label class="settings-label">Graphics Mode</label>
+          <div class="mode-toggle">
+            <button id="mode-prototype" class="mode-btn active">Prototype</button>
+            <button id="mode-full" class="mode-btn">Full</button>
+          </div>
+          <div class="mode-description">Prototype: Simple geometry | Full: Models & textures</div>
+        </div>
         <div class="settings-buttons">
           <button id="resume" class="settings-btn">Resume</button>
           <button id="restart-settings" class="settings-btn">Restart</button>
@@ -115,18 +123,24 @@
       </div>
     `;
 
+    const flapButton = document.createElement('button');
+    flapButton.id = 'flap-button';
+    flapButton.innerHTML = '⬆️';
+    flapButton.setAttribute('aria-label', 'Flap');
+
     ui.appendChild(topbar);
     ui.appendChild(powerUps);
     ui.appendChild(message);
     ui.appendChild(settings);
     ui.appendChild(heightBar);
     ui.appendChild(startScreen);
+    ui.appendChild(flapButton);
     document.body.appendChild(ui);
 
     const scoreValue = document.getElementById('score-value');
     const goldValue = document.getElementById('gold-value');
 
-    return { sceneEl, ui, scoreValue, goldValue, restart, message, powerUps, settings, heightBar, startScreen };
+    return { sceneEl, ui, scoreValue, goldValue, restart, message, powerUps, settings, heightBar, startScreen, flapButton };
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -155,6 +169,7 @@
     let isPaused = false;
     let scoreVal = 0;
     let goldVal = 0;
+    let graphicsMode = 'prototype'; // 'prototype' or 'full'
 
     // Patch SceneManager's update to include bird physics
     const origUpdate = scene.update.bind(scene);
@@ -259,7 +274,6 @@
       gameStarted = true;
       els.startScreen.classList.add('hidden');
       startObstacles();
-      environmentTimer = setInterval(spawnEnvironment, 2000);
     }
 
     // Keyboard: spacebar for flap
@@ -268,6 +282,11 @@
         flap();
         e.preventDefault();
       }
+    });
+
+    // On-screen flap button
+    els.flapButton.addEventListener('click', () => {
+      flap();
     });
 
     // --- Flappy Bird obstacle demo ---
@@ -357,11 +376,13 @@
       spawnObstacle();
       obstacleTimer = setInterval(spawnObstacle, OBSTACLE_INTERVAL);
       moveTimer = setInterval(moveObstacles, 1000 / 60);
+      if (environmentTimer) clearInterval(environmentTimer);
+      environmentTimer = setInterval(spawnEnvironment, 2000);
     }
     function stopObstacles() {
-      clearInterval(obstacleTimer);
-      clearInterval(moveTimer);
-      clearInterval(environmentTimer);
+      if (obstacleTimer) clearInterval(obstacleTimer);
+      if (moveTimer) clearInterval(moveTimer);
+      if (environmentTimer) clearInterval(environmentTimer);
       obstacleTimer = null;
       moveTimer = null;
       environmentTimer = null;
@@ -371,6 +392,10 @@
 
     // --- Environment spawning (islands and rocks) ---
     function spawnEnvironment() {
+      // Ensure arrays exist
+      if (!scene.rocks) scene.rocks = [];
+      if (!scene.islands) scene.islands = [];
+      
       // 30% chance to spawn a rock
       if (Math.random() < 0.3) {
         const size = 0.3 + Math.random() * 0.5;
@@ -507,8 +532,8 @@
       }
     }
 
-    // Spawn environment periodically
-    let environmentTimer = setInterval(spawnEnvironment, 2000);
+    // Environment timer variable
+    let environmentTimer = null;
 
     // --- Coin logic ---
     const coins = [];
@@ -532,7 +557,7 @@
     let clickerTargetObstacle = null;
 
     function spawnCoin(x, y, z = 0) {
-      const coin = new Coin({ x, y, z, radius: COIN_RADIUS, thickness: COIN_THICKNESS, color: COIN_COLOR });
+      const coin = new Coin({ x, y, z, graphicsMode });
       scene.scene.add(coin.mesh);
       coins.push(coin);
     }
@@ -753,7 +778,6 @@
       
       // Start obstacles and environment immediately
       startObstacles();
-      environmentTimer = setInterval(spawnEnvironment, 2000);
     }
 
     // ESC key handler
@@ -775,6 +799,62 @@
     document.getElementById('restart-settings').addEventListener('click', () => {
       resetGame();
     });
+
+    // Graphics mode toggle
+    document.getElementById('mode-prototype').addEventListener('click', () => {
+      if (graphicsMode !== 'prototype') {
+        graphicsMode = 'prototype';
+        document.getElementById('mode-prototype').classList.add('active');
+        document.getElementById('mode-full').classList.remove('active');
+        scene.setGraphicsMode('prototype');
+        recreateCoins();
+      }
+    });
+
+    document.getElementById('mode-full').addEventListener('click', () => {
+      if (graphicsMode !== 'full') {
+        graphicsMode = 'full';
+        document.getElementById('mode-full').classList.add('active');
+        document.getElementById('mode-prototype').classList.remove('active');
+        scene.setGraphicsMode('full');
+        recreateCoins();
+      }
+    });
+
+    function recreateCoins() {
+      // Store positions of existing coins
+      const coinPositions = coins.map(coin => ({
+        x: coin.mesh.position.x,
+        y: coin.mesh.position.y,
+        z: coin.mesh.position.z,
+        collected: coin.collected
+      }));
+
+      // Remove old coins
+      for (const coin of coins) {
+        scene.scene.remove(coin.mesh);
+        if (coin.mesh.traverse) {
+          coin.mesh.traverse((obj) => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              if (Array.isArray(obj.material)) {
+                obj.material.forEach(mat => mat.dispose());
+              } else {
+                obj.material.dispose();
+              }
+            }
+          });
+        }
+      }
+      coins.length = 0;
+
+      // Recreate coins with new graphics mode
+      for (const pos of coinPositions) {
+        if (!pos.collected) {
+          spawnCoin(pos.x, pos.y, pos.z);
+        }
+      }
+    }
 
     // Game over restart button - use event delegation on message container
     els.message.addEventListener('click', (e) => {
