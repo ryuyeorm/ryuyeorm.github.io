@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Papers – Donghoon Ryu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Reuse your existing theme */
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #ffffff;
+            color: #111827;
+            line-height: 1.6;
+        }
+
+        .page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 3rem;
+        }
+
+        :root {
+            --indigo: #4f46e5;
+            --indigo-soft: #eef2ff;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+        }
+
+        a {
+            color: var(--indigo);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .brand-mark {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            background-color: var(--indigo);
+        }
+
+        .brand-text {
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        nav a {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-left: 1rem;
+        }
+        nav a:first-child { margin-left: 0; }
+        nav a:hover { color: var(--indigo); }
+
+        h1.page-title {
+            font-size: clamp(1.8rem, 3vw + 0.5rem, 2.4rem);
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        .section-title span { color: var(--indigo); }
+
+        /* Paper list */
+
+        .paper-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .paper-item + .paper-item {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        details.paper {
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            padding: 0.6rem 0.75rem;
+        }
+
+        details.paper[open] {
+            background-color: #eef2ff;
+        }
+
+        .paper-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .paper-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .paper-meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .paper-reflection {
+            margin-top: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        /* Editor form */
+
+        .editor-box {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.1rem;
+            margin-top: 0.5rem;
+            background-color: #f9fafb;
+        }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .field-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .editor-input,
+        .editor-textarea {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.5rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .editor-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            background-color: #ffffff;
+            color: #111827;
+        }
+
+        .btn-primary {
+            border-color: var(--indigo);
+            background-color: var(--indigo);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #4338ca;
+            border-color: #4338ca;
+            cursor: pointer;
+        }
+
+        .editor-actions {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .editor-note {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #b91c1c;
+            margin-top: 0.2rem;
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            margin-top: 2.5rem;
+            padding-top: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 720px) {
+            .header-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            nav {
+                display: flex;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-mark"></div>
+                <div class="brand-text">Donghoon Ryu</div>
+            </div>
+            <nav>
+                <a href="index.html#about">About</a>
+                <a href="index.html#projects">Projects</a>
+                <a href="papers.html">Papers</a>
+                <a href="index.html#contact">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <h1 class="page-title">Papers & Reflections</h1>
+        <p class="page-subtitle">
+            A running log of papers I have read, with brief reflections on what I learned, questions I still have, and how it connects to my research.
+        </p>
+
+        <h2 class="section-title"><span>Reading log</span></h2>
+        <ul class="paper-list" id="paperList">
+            <!-- Example hard-coded entry -->
+            >
+                <details class="paper">
+                    <summary class="paper-summary">
+                        <span class="paper-title">
+                            Example Paper Title
+                        </span>
+                        <span class="paper-meta">
+                            <a href="https://example.com" target="_blank" rel="noreferrer">Link to paper</a>
+                        </span>
+                    </summary>
+                    <div class="paper-reflection">
+                        Short example reflection about the paper. What I took away, what I liked, and one question I had.
+                    </div>
+                </details>
+            </li>
+        </ul>
+
+        <h2 class="section-title"><span>Editor</span></h2>
+        <div class="editor-box">
+            <p class="editor-note">
+                Use this editor to draft new entries. They are stored in your browser only (localStorage); you can later copy them into the HTML if you want them to be permanent.
+            </p>
+
+            <form id="paperForm" novalidate>
+                <div class="editor-grid">
+                    <div>
+                        <div class="field-label">Paper title</div>
+                        <input type="text" id="paperTitle" class="editor-input" placeholder="e.g., Sample-Efficient RL with XYZ">
+                        <div id="titleError" class="error-text" style="display:none;"></div>
+                    </div>
+                    <div>
+                        <div class="field-label">Paper link</div>
+                        <input type="url" id="paperLink" class="editor-input" placeholder="https://...">
+                        <div id="linkError" class="error-text" style="display:none;"></div>
+                    </div>
+                    <div>
+                        <div class="field-label">Reflection</div>
+                        <textarea id="paperReflection" class="editor-textarea"
+                                  placeholder="What is the main idea? What did you learn? How does it relate to your work?"></textarea>
+                        <div id="reflectionError" class="error-text" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="editor-actions">
+                    <button type="submit" class="btn btn-primary">Add to list</button>
+                    <button type="button" id="clearAll" class="btn">Clear stored entries</button>
+                    <span class="editor-note">Basic verification ensures title, valid URL, and non-empty reflection.</span>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        © <span id="year"></span> Donghoon Ryu
+    </footer>
+</div>
+
+<script>
+    // Year in footer
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const form = document.getElementById('paperForm');
+    const paperList = document.getElementById('paperList');
+    const titleInput = document.getElementById('paperTitle');
+    const linkInput = document.getElementById('paperLink');
+    const reflectionInput = document.getElementById('paperReflection');
+
+    const titleError = document.getElementById('titleError');
+    const linkError = document.getElementById('linkError');
+    const reflectionError = document.getElementById('reflectionError');
+
+    const STORAGE_KEY = 'donghoon_papers_v1';
+
+    function validateUrl(url) {
+        // Simple URL validation, inspired by common patterns.[web:3][web:7]
+        try {
+            new URL(url);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function clearErrors() {
+        titleError.style.display = 'none';
+        linkError.style.display = 'none';
+        reflectionError.style.display = 'none';
+
+        titleError.textContent = '';
+        linkError.textContent = '';
+        reflectionError.textContent = '';
+    }
+
+    function loadStoredPapers() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    }
+
+    function saveStoredPapers(papers) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(papers));
+    }
+
+    function renderPaperItem(paper) {
+        const li = document.createElement('li');
+        li.className = 'paper-item';
+
+        const details = document.createElement('details');
+        details.className = 'paper';
+
+        const summary = document.createElement('summary');
+        summary.className = 'paper-summary';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'paper-title';
+        titleSpan.textContent = paper.title;
+
+        const metaSpan = document.createElement('span');
+        metaSpan.className = 'paper-meta';
+        const link = document.createElement('a');
+        link.href = paper.link;
+        link.target = '_blank';
+        link.rel = 'noreferrer';
+        link.textContent = 'Link to paper';
+        metaSpan.appendChild(link);
+
+        summary.appendChild(titleSpan);
+        summary.appendChild(metaSpan);
+
+        const reflectionDiv = document.createElement('div');
+        reflectionDiv.className = 'paper-reflection';
+        reflectionDiv.textContent = paper.reflection;
+
+        details.appendChild(summary);
+        details.appendChild(reflectionDiv);
+        li.appendChild(details);
+
+        paperList.appendChild(li);
+    }
+
+    // Initial render from localStorage
+    const stored = loadStoredPapers();
+    stored.forEach(renderPaperItem);
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        clearErrors();
+
+        const title = titleInput.value.trim();
+        const link = linkInput.value.trim();
+        const reflection = reflectionInput.value.trim();
+
+        let valid = true;
+
+        if (!title) {
+            titleError.textContent = 'Title is required.';
+            titleError.style.display = 'block';
+            valid = false;
+        }
+
+        if (!link) {
+            linkError.textContent = 'Link is required.';
+            linkError.style.display = 'block';
+            valid = false;
+        } else if (!validateUrl(link)) {
+            linkError.textContent = 'Please enter a valid URL (including https://).';
+            linkError.style.display = 'block';
+            valid = false;
+        }
+
+        if (!reflection) {
+            reflectionError.textContent = 'Reflection cannot be empty.';
+            reflectionError.style.display = 'block';
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        const newPaper = { title, link, reflection };
+
+        const papers = loadStoredPapers();
+        papers.push(newPaper);
+        saveStoredPapers(papers);
+        renderPaperItem(newPaper);
+
+        // Clear inputs for next entry
+        titleInput.value = '';
+        linkInput.value = '';
+        reflectionInput.value = '';
+    });
+
+    document.getElementById('clearAll').addEventListener('click', function () {
+        if (confirm('Clear all stored paper entries from this browser?')) {
+            localStorage.removeItem(STORAGE_KEY);
+            // Remove dynamically added items (keep the hard-coded example)
+            const items = paperList.querySelectorAll('.paper-item');
+            items.forEach((item, index) => {
+                if (index > 0) {
+                    paperList.removeChild(item);
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
