@@ -5,62 +5,65 @@
     <title>Your Name | Portfolio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        :root {
-            --bg: #0f172a;
-            --bg-alt: #020617;
-            --accent: #38bdf8;
-            --accent-soft: rgba(56,189,248,0.1);
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --card: #020617;
-        }
-
+        /* Layout */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
-            color: var(--text);
+            background-color: #ffffff;
+            color: #111827;
             line-height: 1.6;
         }
 
-        a { color: var(--accent); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            backdrop-filter: blur(16px);
-            background: linear-gradient(to bottom, rgba(15,23,42,0.9), rgba(15,23,42,0.2));
-            border-bottom: 1px solid rgba(148,163,184,0.2);
+        .page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 3rem;
         }
 
-        .nav {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 0.75rem 1.25rem;
+        /* Colors */
+        :root {
+            --indigo: #4f46e5;
+            --indigo-soft: #eef2ff;
+            --border: #e5e7eb;
+            --muted: #6b7280;
+        }
+
+        a {
+            color: var(--indigo);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .header-inner {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: 0.75rem;
         }
 
-        .nav-left {
+        .brand {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
 
-        .logo-dot {
+        .brand-mark {
             width: 24px;
             height: 24px;
             border-radius: 999px;
-            background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8 40%, #0369a1 70%);
-            box-shadow: 0 0 0 4px rgba(56,189,248,0.25),
-                        0 0 24px rgba(56,189,248,0.6);
+            background-color: var(--indigo);
         }
 
-        .nav-name {
+        .brand-text {
             font-weight: 600;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -68,534 +71,319 @@
             color: var(--muted);
         }
 
-        .nav-links {
-            display: flex;
-            gap: 1.25rem;
+        nav a {
             font-size: 0.9rem;
-        }
-
-        .nav-links a {
             color: var(--muted);
-            position: relative;
+            margin-left: 1rem;
         }
 
-        .nav-links a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -0.2rem;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(to right, #38bdf8, #a855f7);
-            transition: width 0.2s ease;
+        nav a:first-child {
+            margin-left: 0;
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
+        nav a:hover {
+            color: var(--indigo);
         }
 
+        /* Hero */
         main {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 2.5rem 1.25rem 4rem;
-        }
-
-        .hero {
             display: grid;
             grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
-            gap: 2.5rem;
-            align-items: center;
-            padding: 2.5rem 2rem;
-            margin-bottom: 3rem;
-            border-radius: 1.5rem;
-            background: radial-gradient(circle at top left, rgba(56,189,248,0.14), rgba(15,23,42,0.9)),
-                        linear-gradient(to bottom right, rgba(15,23,42,0.8), rgba(15,23,42,0.95));
-            border: 1px solid rgba(148,163,184,0.35);
-            box-shadow:
-                0 40px 80px rgba(15,23,42,0.95),
-                0 0 40px rgba(15,118,110,0.35);
+            gap: 2rem;
+            align-items: flex-start;
         }
 
         .hero-title {
-            font-size: clamp(2rem, 3vw + 1rem, 2.9rem);
+            font-size: clamp(1.8rem, 3vw + 0.5rem, 2.4rem);
             font-weight: 700;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .hero-title span {
-            background: linear-gradient(to right, #38bdf8, #a855f7);
-            -webkit-background-clip: text;
-            color: transparent;
+            color: var(--indigo);
         }
 
         .hero-subtitle {
             color: var(--muted);
-            max-width: 34rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
             margin-bottom: 1.5rem;
         }
 
-        .hero-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1.75rem;
-        }
-
         .tag {
-            padding: 0.25rem 0.7rem;
             border-radius: 999px;
-            background: rgba(15,23,42,0.9);
-            border: 1px solid rgba(56,189,248,0.35);
-            font-size: 0.75rem;
-            color: var(--muted);
+            padding: 0.15rem 0.6rem;
+            font-size: 0.8rem;
+            background-color: var(--indigo-soft);
+            color: #4338ca;
         }
 
-        .hero-actions {
+        .hero-links {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.75rem;
+            gap: 0.6rem;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
-            padding: 0.55rem 1.2rem;
             border-radius: 999px;
-            border: 1px solid transparent;
+            padding: 0.4rem 0.9rem;
             font-size: 0.9rem;
-            cursor: pointer;
-            background: none;
-            color: inherit;
+            border: 1px solid var(--border);
+            background-color: #ffffff;
+            color: #111827;
         }
 
         .btn-primary {
-            background: linear-gradient(to right, #38bdf8, #0ea5e9);
-            color: #0b1120;
-            font-weight: 600;
-            box-shadow:
-                0 10px 30px rgba(56,189,248,0.5),
-                0 0 30px rgba(56,189,248,0.75);
-        }
-
-        .btn-outline {
-            border-color: rgba(148,163,184,0.6);
-            color: var(--muted);
-            background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.7));
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 40px rgba(15,23,42,0.8);
+            border-color: var(--indigo);
+            background-color: var(--indigo);
+            color: #ffffff;
         }
 
         .btn-primary:hover {
-            filter: brightness(1.05);
+            background-color: #4338ca;
+            border-color: #4338ca;
         }
 
-        .hero-avatar {
-            display: flex;
-            justify-content: center;
+        .btn:hover {
+            cursor: pointer;
         }
 
-        .avatar-card {
-            width: 220px;
-            height: 220px;
-            border-radius: 1.25rem;
-            background:
-                radial-gradient(circle at top, rgba(56,189,248,0.35), transparent 60%),
-                linear-gradient(145deg, #020617, #020617);
-            border: 1px solid rgba(56,189,248,0.4);
-            box-shadow:
-                0 30px 60px rgba(15,23,42,0.98),
-                0 0 40px rgba(37,99,235,0.4);
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+        /* Simple right column */
+        .summary-box {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.1rem;
+            font-size: 0.9rem;
+            background-color: #f9fafb;
         }
 
-        .avatar-ring {
-            width: 150px;
-            height: 150px;
-            border-radius: 999px;
-            border: 2px dashed rgba(148,163,184,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .summary-title {
+            font-weight: 600;
+            margin-bottom: 0.4rem;
         }
 
-        .avatar-circle {
-            width: 110px;
-            height: 110px;
-            border-radius: 999px;
-            background: radial-gradient(circle at 20% 20%, #e5e7eb, #64748b 45%, #020617 80%);
-        }
-
-        .avatar-chip {
-            position: absolute;
-            bottom: 14px;
-            left: 14px;
-            padding: 0.35rem 0.7rem;
-            border-radius: 999px;
-            background: rgba(15,23,42,0.85);
-            border: 1px solid rgba(56,189,248,0.5);
-            font-size: 0.7rem;
+        .summary-muted {
             color: var(--muted);
         }
 
-        .avatar-dot {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 10px;
-            height: 10px;
-            border-radius: 999px;
-            background: #22c55e;
-            box-shadow: 0 0 16px rgba(34,197,94,0.9);
-        }
-
+        /* Section: Projects */
         section {
-            margin-bottom: 3rem;
+            grid-column: 1 / -1;
+            margin-top: 2.5rem;
         }
 
         .section-title {
             font-size: 1rem;
             font-weight: 600;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--muted);
             margin-bottom: 0.75rem;
         }
 
         .section-title span {
-            color: var(--accent);
+            color: var(--indigo);
         }
 
         .section-intro {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
             max-width: 40rem;
+        }
+
+        .project-list {
+            list-style: none;
+        }
+
+        .project-item + .project-item {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .project-name {
+            font-weight: 600;
+        }
+
+        .project-meta {
+            font-size: 0.85rem;
             color: var(--muted);
-            font-size: 0.95rem;
-            margin-bottom: 1.75rem;
+            margin-top: 0.1rem;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .card {
-            padding: 1.1rem 1.1rem 1rem;
-            border-radius: 1rem;
-            background:
-                radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 60%),
-                linear-gradient(to bottom right, #020617, #020617);
-            border: 1px solid rgba(51,65,85,0.9);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.7);
-        }
-
-        .card:hover {
-            border-color: rgba(56,189,248,0.7);
-            transform: translateY(-2px);
-            box-shadow:
-                0 20px 50px rgba(0,0,0,0.9),
-                0 0 30px rgba(56,189,248,0.35);
-        }
-
-        .card h3 {
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .card-meta {
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 0.55rem;
-        }
-
-        .card p {
+        .project-desc {
             font-size: 0.9rem;
-            color: var(--muted);
-            margin-bottom: 0.65rem;
+            margin-top: 0.3rem;
         }
 
-        .pill-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-            margin-top: 0.5rem;
-        }
-
-        .pill {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            background: rgba(15,23,42,0.9);
-            border: 1px solid rgba(148,163,184,0.65);
-            color: var(--muted);
-        }
-
-        .timeline {
-            border-left: 1px solid rgba(51,65,85,0.9);
-            padding-left: 1rem;
-        }
-
-        .timeline-item {
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: "";
-            position: absolute;
-            left: -9px;
-            top: 0.4rem;
-            width: 11px;
-            height: 11px;
-            border-radius: 999px;
-            background: radial-gradient(circle at 30% 30%, #e0f2fe, #38bdf8);
-            box-shadow: 0 0 16px rgba(56,189,248,0.8);
-        }
-
-        .timeline-item h3 {
-            font-size: 0.95rem;
-        }
-
-        .timeline-item span {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 0.35rem;
-        }
-
+        /* Section: Contact */
         .contact-list {
             list-style: none;
             font-size: 0.9rem;
+            margin-top: 0.6rem;
         }
 
         .contact-list li + li {
-            margin-top: 0.4rem;
+            margin-top: 0.3rem;
         }
 
         .contact-label {
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.12em;
             color: var(--muted);
         }
 
-        .footer {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 1.25rem 1.25rem 2.5rem;
-            border-top: 1px solid rgba(30,64,175,0.9);
-            color: var(--muted);
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            margin-top: 2.5rem;
+            padding-top: 0.75rem;
             font-size: 0.8rem;
-            display: flex;
-            justify-content: space-between;
-            gap: 0.75rem;
-        }
-
-        .footer span {
-            opacity: 0.9;
+            color: var(--muted);
         }
 
         @media (max-width: 720px) {
-            .hero {
-                grid-template-columns: minmax(0, 1fr);
-                padding: 1.75rem 1.25rem;
-            }
-
-            .hero-avatar {
-                order: -1;
-            }
-
-            header {
-                position: static;
-            }
-
-            .nav {
+            .header-inner {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.5rem;
             }
 
-            .nav-links {
+            nav {
+                display: flex;
                 gap: 0.75rem;
+                flex-wrap: wrap;
             }
 
             main {
-                padding-top: 1.75rem;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
     </style>
 </head>
 <body>
-<header>
-    <div class="nav">
-        <div class="nav-left">
-            <div class="logo-dot"></div>
-            <div class="nav-name">Your Name</div>
+<div class="page">
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-mark"></div>
+                <div class="brand-text">Your Name</div>
+            </div>
+            <nav>
+                <a href="#about">About</a>
+                <a href="#projects">Projects</a>
+                <a href="#contact">Contact</a>
+            </nav>
         </div>
-        <nav class="nav-links">
-            <a href="#about">About</a>
-            <a href="#projects">Projects</a>
-            <a href="#experience">Experience</a>
-            <a href="#contact">Contact</a>
-        </nav>
-    </div>
-</header>
+    </header>
 
-<main>
-    <section class="hero" id="about">
+    <main id="about">
         <div>
             <h1 class="hero-title">Hi, I’m <span>Your Name</span>.</h1>
             <p class="hero-subtitle">
-                I’m a researcher and engineer working with biomedical sensing, data acquisition,
-                and robotics. I like building robust experiments, tools, and visualizations.
+                I work on biomedical sensing, experiment automation, and robotics.
+                I enjoy building small tools that make data collection and analysis less painful.
             </p>
-            <div class="hero-tags">
+
+            <div class="tags">
                 <span class="tag">Python</span>
                 <span class="tag">Robotics</span>
-                <span class="tag">Biomechanics</span>
-                <span class="tag">Data Pipelines</span>
+                <span class="tag">EMG / fNIRS</span>
+                <span class="tag">Data pipelines</span>
             </div>
-            <div class="hero-actions">
-                <a class="btn btn-primary" href="#projects">View projects →</a>
-                <a class="btn btn-outline" href="https://github.com/your-username" target="_blank" rel="noreferrer">
-                    GitHub profile
+
+            <div class="hero-links">
+                <a class="btn btn-primary" href="#projects">View projects</a>
+                <a class="btn" href="https://github.com/your-username" target="_blank" rel="noreferrer">
+                    GitHub
                 </a>
+                <a class="btn" href="#contact">Get in touch</a>
             </div>
         </div>
 
-        <div class="hero-avatar">
-            <div class="avatar-card">
-                <div class="avatar-ring">
-                    <div class="avatar-circle"></div>
-                </div>
-                <div class="avatar-chip">Available for collaborations</div>
-                <div class="avatar-dot"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="projects">
-        <h2 class="section-title"><span>Projects</span> & builds</h2>
-        <p class="section-intro">
-            A few things I’ve worked on recently. Replace these with links to your own repositories or write-ups.
-        </p>
-        <div class="grid">
-            <article class="card">
-                <h3>Multi-sensor experiment toolkit</h3>
-                <div class="card-meta">Python · fNIRS · EMG · LSL</div>
-                <p>
-                    Scripts and utilities to run synchronized multi-device experiments,
-                    log triggers, and export clean analysis-ready data.
-                </p>
-                <div class="pill-row">
-                    <span class="pill">Time-sync</span>
-                    <span class="pill">Automation</span>
-                    <span class="pill">CSV/XDF</span>
-                </div>
-            </article>
-
-            <article class="card">
-                <h3>Exoskeleton lifting protocol</h3>
-                <div class="card-meta">Python · Audio cues</div>
-                <p>
-                    Automated timing and speech prompts for box-lifting tasks,
-                    including randomized conditions and detailed timestamp logs.
-                </p>
-                <div class="pill-row">
-                    <span class="pill">Metronome</span>
-                    <span class="pill">Experiment control</span>
-                </div>
-            </article>
-
-            <article class="card">
-                <h3>Robotics SLAM sandbox</h3>
-                <div class="card-meta">Python · GraphSLAM</div>
-                <p>
-                    Small playground for experimenting with GraphSLAM, obstacle avoidance,
-                    and sensor fusion on simulated robot data.
-                </p>
-                <div class="pill-row">
-                    <span class="pill">Mapping</span>
-                    <span class="pill">Optimization</span>
-                </div>
-            </article>
-        </div>
-    </section>
-
-    <section id="experience">
-        <h2 class="section-title"><span>Experience</span> & background</h2>
-        <p class="section-intro">
-            Snapshot of my academic and research experience. Adjust this timeline to match your real path.
-        </p>
-        <div class="timeline">
-            <div class="timeline-item">
-                <h3>Research / Engineering</h3>
-                <span>Biomechanics · Biomedical sensing</span>
-                <p>
-                    Designing and running human-subject experiments with EMG, fNIRS, force plates,
-                    and exoskeletons. Focus on reliable data collection and synchronization.
+        <aside>
+            <div class="summary-box">
+                <div class="summary-title">Short summary</div>
+                <p class="summary-muted">
+                    Replace this text with 2–3 sentences about who you are,
+                    what you’re studying or working on, and what you’re looking for
+                    (internships, grad school, collaborations, etc.).
                 </p>
             </div>
-            <div class="timeline-item">
-                <h3>Robotics & controls coursework</h3>
-                <span>GraphSLAM · perception · planning</span>
-                <p>
-                    Implemented mapping, localization, and obstacle-avoidance controllers in simulation,
-                    with an emphasis on readable, testable code.
-                </p>
-            </div>
-        </div>
-    </section>
+        </aside>
 
-    <section id="contact">
-        <h2 class="section-title"><span>Contact</span> & links</h2>
-        <p class="section-intro">
-            The quickest way to reach me is email, but feel free to connect on GitHub or LinkedIn as well.
-        </p>
-        <div class="grid">
-            <div class="card">
-                <ul class="contact-list">
-                    <li>
-                        <div class="contact-label">Email</div>
-                        <a href="mailto:you@example.com">you@example.com</a>
-                    </li>
-                    <li>
-                        <div class="contact-label">GitHub</div>
-                        <a href="https://github.com/your-username" target="_blank" rel="noreferrer">
-                            github.com/your-username
-                        </a>
-                    </li>
-                    <li>
-                        <div class="contact-label">LinkedIn</div>
-                        <a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noreferrer">
-                            linkedin.com/in/your-handle
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="card">
-                <h3>Small note</h3>
-                <p>
-                    This site is a single static HTML file with inline CSS, ideal for GitHub Pages and easy to tweak in any editor.
-                    Clone it, change the text, and push.
-                </p>
-            </div>
-        </div>
-    </section>
-</main>
+        <section id="projects">
+            <h2 class="section-title"><span>Projects</span></h2>
+            <p class="section-intro">
+                A few recent things I’ve worked on. Link these to your public repositories or short write-ups.
+            </p>
+            <ul class="project-list">
+                <li class="project-item">
+                    <div class="project-name">Multi-sensor experiment toolkit</div>
+                    <div class="project-meta">Python · LSL · EMG · fNIRS</div>
+                    <p class="project-desc">
+                        Small utilities to start/stop recordings, send triggers, and export clean CSV files
+                        from multi-device experiments.
+                    </p>
+                </li>
+                <li class="project-item">
+                    <div class="project-name">Exoskeleton lifting protocol</div>
+                    <div class="project-meta">Python · Audio cues</div>
+                    <p class="project-desc">
+                        A script that gives spoken instructions and metronome beeps for box-lifting tasks
+                        while logging timestamps for each event.
+                    </p>
+                </li>
+                <li class="project-item">
+                    <div class="project-name">GraphSLAM playground</div>
+                    <div class="project-meta">Robotics · SLAM</div>
+                    <p class="project-desc">
+                        Simple environment to try out GraphSLAM ideas and obstacle-avoidance controllers
+                        using simulated robot sensor data.
+                    </p>
+                </li>
+            </ul>
+        </section>
 
-<footer class="footer">
-    <span>© <span id="year"></span> Your Name</span>
-    <span>Built with HTML & CSS · Hosted on GitHub Pages</span>
-</footer>
+        <section id="contact">
+            <h2 class="section-title"><span>Contact</span></h2>
+            <p class="section-intro">
+                Feel free to reach out if you’d like to chat about projects, research, or collaborations.
+            </p>
+            <ul class="contact-list">
+                <li>
+                    <div class="contact-label">Email</div>
+                    <a href="mailto:you@example.com">you@example.com</a>
+                </li>
+                <li>
+                    <div class="contact-label">GitHub</div>
+                    <a href="https://github.com/your-username" target="_blank" rel="noreferrer">
+                        github.com/your-username
+                    </a>
+                </li>
+                <li>
+                    <div class="contact-label">LinkedIn</div>
+                    <a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noreferrer">
+                        linkedin.com/in/your-handle
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        © <span id="year"></span> Your Name
+    </footer>
+</div>
 
 <script>
     document.getElementById("year").textContent = new Date().getFullYear();
