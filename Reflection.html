@@ -289,6 +289,9 @@
                     </div>
                 </details>
             </li>
+            <li class="paper-item"><details class="paper"><summary class="paper-summary"><span class="paper-title">Streaming Deep Reinforcement Learning Finally Works</span><span class="paper-meta"><a href="https://arxiv.org/abs/2410.14606" target="_blank" rel="noreferrer">Link to paper</a></span></summary><div class="paper-reflection">My first introduction to streaming deep learning without experience replay using replay buffer. The author uses SparseInit, a sparse initialization technique that randomly initializes most weight to zero. He also leverages measures to prevent overshooting such as step size adjustment and ObGD(overshooting bounded Gradient Descent) that utilizes eligibility traces vector in order to control the instabilitiy of streaming RL. Lastly he utilizes LayerNorm, reward normalization, and observation normalization in order to stabilize activation distribution and to scale the data properly. These changes are all accumulated to form stream-x algorithms, which he applies these improvements to various RL algorithms including Actor Critic, Q learning, and TD Learning. 
+
+            Future works : The paper addresses single task learning scenarios, hence this algorithms shows the possibility of successful training without replay buffer which would significantly reduces the computational resources required for online RL. The multi-task scenarios will have significant challenges as it requires addressing the catastrophic forgetting that arises when training diverse tasks.</div></details></li>
         </ul>
 
 <h2 class="section-title"><span>Editor</span></h2>
