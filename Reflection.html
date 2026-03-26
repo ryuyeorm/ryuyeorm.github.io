@@ -291,39 +291,64 @@
             </li>
         </ul>
 
-        <h2 class="section-title"><span>Editor</span></h2>
-        <div class="editor-box">
-            <p class="editor-note">
-                Use this editor to draft new entries. They are stored in your browser only (localStorage); you can later copy them into the HTML if you want them to be permanent.
-            </p>
+<h2 class="section-title"><span>Editor</span></h2>
+<div class="editor-box" id="editorBox" style="display:none;">
+    <p class="editor-note">
+        Use this editor to draft new entries. They are stored in your browser only (localStorage); you can later copy them into the HTML if you want them to be permanent.
+    </p>
 
-            <form id="paperForm" novalidate>
-                <div class="editor-grid">
-                    <div>
-                        <div class="field-label">Paper title</div>
-                        <input type="text" id="paperTitle" class="editor-input" placeholder="e.g., Sample-Efficient RL with XYZ">
-                        <div id="titleError" class="error-text" style="display:none;"></div>
-                    </div>
-                    <div>
-                        <div class="field-label">Paper link</div>
-                        <input type="url" id="paperLink" class="editor-input" placeholder="https://...">
-                        <div id="linkError" class="error-text" style="display:none;"></div>
-                    </div>
-                    <div>
-                        <div class="field-label">Reflection</div>
-                        <textarea id="paperReflection" class="editor-textarea"
-                                  placeholder="What is the main idea? What did you learn? How does it relate to your work?"></textarea>
-                        <div id="reflectionError" class="error-text" style="display:none;"></div>
-                    </div>
-                </div>
-
-                <div class="editor-actions">
-                    <button type="submit" class="btn btn-primary">Add to list</button>
-                    <button type="button" id="clearAll" class="btn">Clear stored entries</button>
-                    <span class="editor-note">Basic verification ensures title, valid URL, and non-empty reflection.</span>
-                </div>
-            </form>
+    <form id="paperForm" novalidate>
+        <div class="editor-grid">
+            <div>
+                <div class="field-label">Paper title</div>
+                <input type="text" id="paperTitle" class="editor-input"
+                       placeholder="e.g., Sample-Efficient RL with XYZ">
+                <div id="titleError" class="error-text" style="display:none;"></div>
+            </div>
+            <div>
+                <div class="field-label">Paper link</div>
+                <input type="url" id="paperLink" class="editor-input"
+                       placeholder="https://...">
+                <div id="linkError" class="error-text" style="display:none;"></div>
+            </div>
+            <div>
+                <div class="field-label">Reflection</div>
+                <textarea id="paperReflection" class="editor-textarea"
+                          placeholder="What is the main idea? What did you learn? How does it relate to your work?"></textarea>
+                <div id="reflectionError" class="error-text" style="display:none;"></div>
+            </div>
         </div>
+
+        <div class="editor-actions">
+            <button type="submit" class="btn btn-primary">Add to list</button>
+            <button type="button" id="clearAll" class="btn">Clear stored entries</button>
+            <span class="editor-note">
+                Basic verification ensures title, valid URL, and non-empty reflection.
+            </span>
+        </div>
+    </form>
+</div>
+
+<!-- Password gate UI -->
+<div class="editor-box" id="passwordBox">
+    <form id="passwordForm">
+        <div class="editor-grid">
+            <div>
+                <div class="field-label">Editor password</div>
+                <input type="password" id="editorPassword" class="editor-input"
+                       placeholder="Enter password">
+                <div id="passwordError" class="error-text" style="display:none;"></div>
+            </div>
+        </div>
+        <div class="editor-actions">
+            <button type="submit" class="btn btn-primary">Unlock editor</button>
+            <span class="editor-note">
+                This is client-side only; do not use a sensitive password.[web:12][web:17][web:20]
+            </span>
+        </div>
+    </form>
+</div>
+
     </main>
 
     <footer>
@@ -334,6 +359,37 @@
 <script>
     // Year in footer
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // ===== Password protection for editor (very light-weight) =====
+    const EDITOR_PASSWORD = "Dontlookatthis!@";  // <--- set your password here
+
+    const passwordForm = document.getElementById('passwordForm');
+    const passwordInput = document.getElementById('editorPassword');
+    const passwordError = document.getElementById('passwordError');
+    const editorBox = document.getElementById('editorBox');
+    const passwordBox = document.getElementById('passwordBox');
+
+    // Optional: remember unlock in this browser until tab close
+    let editorUnlocked = false;
+
+    passwordForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        passwordError.style.display = 'none';
+        passwordError.textContent = '';
+
+        const value = passwordInput.value;
+        if (value === EDITOR_PASSWORD) {
+            editorUnlocked = true;
+            passwordInput.value = '';
+            passwordBox.style.display = 'none';
+            editorBox.style.display = 'block';
+        } else {
+            passwordError.textContent = 'Incorrect password.';
+            passwordError.style.display = 'block';
+        }
+    });
+
+    // ===== Editor & storage logic (same as before) =====
 
     const form = document.getElementById('paperForm');
     const paperList = document.getElementById('paperList');
@@ -348,7 +404,6 @@
     const STORAGE_KEY = 'donghoon_papers_v1';
 
     function validateUrl(url) {
-        // Simple URL validation, inspired by common patterns.[web:3][web:7]
         try {
             new URL(url);
             return true;
@@ -424,6 +479,12 @@
 
     form.addEventListener('submit', function (event) {
         event.preventDefault();
+        if (!editorUnlocked) {
+            // Should not happen via UI, but just in case
+            alert('Editor is locked. Enter the password first.');
+            return;
+        }
+
         clearErrors();
 
         const title = titleInput.value.trim();
@@ -463,7 +524,6 @@
         saveStoredPapers(papers);
         renderPaperItem(newPaper);
 
-        // Clear inputs for next entry
         titleInput.value = '';
         linkInput.value = '';
         reflectionInput.value = '';
@@ -472,7 +532,6 @@
     document.getElementById('clearAll').addEventListener('click', function () {
         if (confirm('Clear all stored paper entries from this browser?')) {
             localStorage.removeItem(STORAGE_KEY);
-            // Remove dynamically added items (keep the hard-coded example)
             const items = paperList.querySelectorAll('.paper-item');
             items.forEach((item, index) => {
                 if (index > 0) {
@@ -482,5 +541,6 @@
         }
     });
 </script>
+
 </body>
 </html>
