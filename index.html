@@ -2,391 +2,522 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Donghoon's Website</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHMART - Happy Anniversary!</title>
+    <!-- We include this library so we can convert the receipt into a downloadable image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* Layout */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* --- BASE STYLES --- */
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background-color: #ffffff;
-            color: #111827;
-            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff0f5; 
+            color: #333;
         }
+        .hidden { display: none !important; }
 
-        .page {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 1.5rem 1.25rem 3rem;
-        }
-
-        /* Colors */
-        :root {
-            --indigo: #4f46e5;
-            --indigo-soft: #eef2ff;
-            --border: #e5e7eb;
-            --muted: #6b7280;
-        }
-
-        a {
-            color: var(--indigo);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* Header */
-        header {
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 2rem;
-        }
-
-        .header-inner {
+        /* --- CUSTOM MODAL --- */
+        #custom-modal {
+            position: fixed;
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
             display: flex;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding-bottom: 0.75rem;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #ff4081;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        #modal-message {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #333;
+            font-weight: bold;
+            line-height: 1.4;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .brand-mark {
-            width: 24px;
-            height: 24px;
-            border-radius: 999px;
-            background-color: var(--indigo);
-        }
-
-        .brand-text {
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-
-        nav a {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin-left: 1rem;
-        }
-
-        nav a:first-child {
-            margin-left: 0;
-        }
-
-        nav a:hover {
-            color: var(--indigo);
-        }
-
-        /* Hero */
-        main {
-            display: grid;
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
-            gap: 2rem;
-            align-items: flex-start;
-        }
-
-        .hero-title {
-            font-size: clamp(1.8rem, 3vw + 0.5rem, 2.4rem);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-title span {
-            color: var(--indigo);
-        }
-
-        .hero-subtitle {
-            color: var(--muted);
-            margin-bottom: 1.25rem;
-        }
-
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .tag {
-            border-radius: 999px;
-            padding: 0.15rem 0.6rem;
-            font-size: 0.8rem;
-            background-color: var(--indigo-soft);
-            color: #4338ca;
-        }
-
-        .hero-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-
+        /* --- BUTTONS --- */
         .btn {
-            display: inline-flex;
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 64, 129, 0.6);
+            background-color: #f50057;
+        }
+
+        /* --- START SCREEN --- */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        h1 {
+            color: #ff4081;
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        p.subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        /* --- ORDERING PAGE --- */
+        #ordering-page {
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-in-out;
+            padding-bottom: 120px;
+        }
+        .page-header {
+            text-align: center;
+            color: #ff4081;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            position: relative;
+            border: 3px solid transparent;
+        }
+        .product-card.has-items { border-color: #ff4081; background-color: #ffeef3; }
+        
+        .product-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #f0f0f0; 
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            padding: 0.4rem 0.9rem;
+            color: #aaa;
             font-size: 0.9rem;
-            border: 1px solid var(--border);
-            background-color: #ffffff;
-            color: #111827;
-        }
-
-        .btn-primary {
-            border-color: var(--indigo);
-            background-color: var(--indigo);
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background-color: #4338ca;
-            border-color: #4338ca;
-        }
-
-        .btn:hover {
             cursor: pointer;
         }
-
-        /* Simple right column */
-        .summary-box {
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1rem 1.1rem;
-            font-size: 0.9rem;
-            background-color: #f9fafb;
-        }
-
-        .summary-title {
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-        }
-
-        .summary-muted {
-            color: var(--muted);
-        }
-
-        /* Section: Projects */
-        section {
-            grid-column: 1 / -1;
-            margin-top: 2.5rem;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 0.75rem;
-        }
-
-        .section-title span {
-            color: var(--indigo);
-        }
-
-        .section-intro {
-            color: var(--muted);
+        .product-name {
             font-size: 0.95rem;
-            margin-bottom: 1.2rem;
-            max-width: 40rem;
+            font-weight: bold;
+            color: #444;
+            line-height: 1.3;
+            margin-bottom: 5px;
         }
 
-        .project-list {
-            list-style: none;
-        }
-
-        .project-item + .project-item {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .project-name {
-            font-weight: 600;
-        }
-
-        .project-meta {
+        /* Series Link Style */
+        .product-link {
+            display: inline-block;
             font-size: 0.85rem;
-            color: var(--muted);
-            margin-top: 0.1rem;
+            color: #ff4081;
+            text-decoration: none;
+            margin-bottom: 15px;
+            transition: color 0.2s;
+        }
+        .product-link:hover {
+            color: #f50057;
+            text-decoration: underline;
+        }
+        
+        /* Item Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .ctrl-btn {
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ctrl-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .qty-display { font-weight: bold; font-size: 1.2rem; width: 20px; }
+
+        /* --- FLOATING CART --- */
+        #cart-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+        #cart-btn {
+            background-color: #ff4081;
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
+            transition: transform 0.2s;
+        }
+        #cart-btn:hover { transform: scale(1.1); }
+        #cart-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #333;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #fff0f5;
         }
 
-        .project-desc {
-            font-size: 0.9rem;
-            margin-top: 0.3rem;
+        /* --- PAYMENT PAGE --- */
+        #payment-page {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .checkout-list {
+            text-align: left;
+            margin: 20px 0;
+            border-top: 2px dashed #ff4081;
+            border-bottom: 2px dashed #ff4081;
+            padding: 20px 0;
+        }
+        .checkout-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .checkout-total {
+            font-size: 1.5rem;
+            color: #ff4081;
+            font-weight: bold;
+            margin-top: 20px;
         }
 
-        /* Section: Contact */
-        .contact-list {
-            list-style: none;
-            font-size: 0.9rem;
-            margin-top: 0.6rem;
+        /* --- ENDING PAGE & RECEIPT --- */
+        #ending-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        #receipt-card {
+            background-color: #fff;
+            width: 350px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace; /* Receipt font */
+        }
+        .receipt-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 5px; }
+        .receipt-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
+        .receipt-divider { border-top: 1px dashed #333; margin: 15px 0; }
+        .receipt-item { display: flex; justify-content: space-between; text-align: left; font-size: 0.9rem; margin-bottom: 8px; }
+        .receipt-footer { font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
+        .paid-stamp {
+            color: #ff4081;
+            border: 3px solid #ff4081;
+            display: inline-block;
+            padding: 5px 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transform: rotate(-10deg);
+            margin-top: 20px;
+            border-radius: 5px;
         }
 
-        .contact-list li + li {
-            margin-top: 0.3rem;
-        }
-
-        .contact-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--muted);
-        }
-
-        /* Footer */
-        footer {
-            border-top: 1px solid var(--border);
-            margin-top: 2.5rem;
-            padding-top: 0.75rem;
-            font-size: 0.8rem;
-            color: var(--muted);
-        }
-
-        @media (max-width: 720px) {
-            .header-inner {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            nav {
-                display: flex;
-                gap: 0.75rem;
-                flex-wrap: wrap;
-            }
-
-            main {
-                grid-template-columns: minmax(0, 1fr);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-<div class="page">
-    <header>
-        <div class="header-inner">
-            <div class="brand">
-                <div class="brand-mark"></div>
-                <div class="brand-text">Donghoon Ryu</div>
-            </div>
-            <nav>
-                <a href="#about">About</a>
-                <a href="#projects">Projects</a>
-                <a href="Reflection.html">Papers Read</a>
-                <a href="#contact">Contact</a>
-            </nav>
 
+    <!-- CUSTOM POP-UP MODAL -->
+    <div id="custom-modal" class="hidden">
+        <div class="modal-content">
+            <div id="modal-message">Message goes here</div>
+            <button class="btn" style="margin-top: 0; padding: 10px 30px;" onclick="closeModal()">OK</button>
         </div>
-    </header>
+    </div>
 
-    <main id="about">
-        <div>
-            <h1 class="hero-title"><span>Donghoon Ryu</span></h1>
+    <!-- 1. START SCREEN -->
+    <div id="start-screen">
+        <h1>Welcome to DHMART!</h1>
+        <p class="subtitle">Happy 15 months Baby! Click start to continue to your gift ❤️❤️</p>
+        <button class="btn" onclick="showPage('ordering-page')">Start Shopping</button>
+    </div>
 
-            <!-- Photo under name -->
-            <img src="Headshot.jpg" alt="Photo of Donghoon Ryu"
-                style="width:160px; height:200px; object-fit:cover; margin:0.75rem 0 1rem;">
+    <!-- 2. ORDERING PAGE -->
+    <div id="ordering-page" class="hidden">
+        <h2 class="page-header">Choose exactly 5 items!</h2>
+        <div class="product-grid" id="product-grid"></div>
+    </div>
 
-            <p class="hero-subtitle">
-                I am a graduating senior in University of Wisconsin-Madison in Computer Science and Mathematics.
-            </p>
+    <!-- FLOATING CART -->
+    <div id="cart-container" class="hidden">
+        <div id="cart-btn" onclick="goToPayment()">
+            🛒
+            <div id="cart-badge">0</div>
+        </div>
+    </div>
 
-            <div class="tags">
-                <span class="tag">Reinforcement Learning</span>
-                <span class="tag">Robotics</span>
-            </div>
-
-            <div class="hero-links">
-                <a class="btn btn-primary" href="#projects">View projects</a>
-                <a class="btn" href="https://github.com/ryuyeorm" target="_blank" rel="noreferrer">
-                    GitHub
-                </a>
-                <a class="btn" href="#contact">Get in touch</a>
-            </div>
+    <!-- 3. PAYMENT PAGE -->
+    <div id="payment-page" class="hidden">
+        <h2 class="page-header">Review Your Order</h2>
+        <p>You selected 5 beautiful gifts! Here is your summary:</p>
+        
+        <div class="checkout-list" id="checkout-list">
+            <!-- Items injected via JS -->
         </div>
 
+        <div class="checkout-total">Payment Method : 100 kisses :)))</div>
+        <button class="btn" onclick="processPayment()">Proceed with Payment</button>
+        <button class="btn" style="background-color: #999; margin-left: 10px;" onclick="showPage('ordering-page')">Go Back</button>
+    </div>
 
-        <aside>
-            <div class="summary-box">
-                <div class="summary-title">Short summary</div>
-                <p class="summary-muted">
-                    My research interest is focused on Reinforcement learning, specifically Sample-efficient RL and Continual Learning that
-                    addresses the Catastrophic Forgetting and Loss of Plasticity prevelant in many fields of Machine Learning.
-                </p>
+    <!-- 4. ENDING PAGE -->
+    <div id="ending-page" class="hidden">
+        <h2 class="page-header">Order Confirmed! 🎉</h2>
+        <p>Thank you for shopping at DHMART. Download your receipt and send it to ME!</p>
+
+        <!-- The Receipt Element (Will be turned into an image) -->
+        <div id="receipt-card">
+            <div class="receipt-title">DHMART</div>
+            <div class="receipt-subtitle">Order receipt</div>
+            <div class="receipt-divider"></div>
+            
+            <div id="receipt-items">
+                <!-- Items injected via JS -->
             </div>
-        </aside>
+            
+            <div class="receipt-divider"></div>
+            <div class="receipt-item" style="font-weight: bold;">
+                <span>Total:</span>
+                <span>100 Kisses</span>
+            </div>
+            <div class="paid-stamp">PAID IN FULL</div>
+        </div>
 
-        <section id="projects">
-            <h2 class="section-title"><span>Projects</span></h2>
-            <p class="section-intro">
-                A few project I have worked on in the past.
-            </p>
-            <ul class="project-list">
-                <li class="project-item">
-                    <div class="project-name">DQN for Flappy Bird</div>
-                    <div class="project-meta">Java</div>
-                    <p class="project-desc">
-                        Engineered a Policy Gradient agent using the REINFORCE algorithm, implemented from scratch in Java without
-                        external ML libraries to demonstrate foundational understanding. Engineered a A2C agent that further solved 
-                        the divergence problem emerged from REINFORCE implementation.
-                    </p>
-                </li>
-                <li class="project-item">
-                    <div class="project-name">Evaluating Motion Mimicking as Exoskeleton Familiarization Task</div>
-                    <div class="project-meta">Python</div>
-                    <p class="project-desc">
-                        Engineered motion mimicking method that functions as a familiarization task for the exoskeleton user
-                    </p>
-                </li>
-            </ul>
-        </section>
+        <button class="btn" onclick="downloadReceipt()">📥 Download Order Image</button>
+    </div>
 
-        <section id="contact">
-            <h2 class="section-title"><span>Contact</span></h2>
-            <p class="section-intro">
-                Feel free to reach out if you’d like to chat about projects, research, or collaborations.
-            </p>
-            <ul class="contact-list">
-                <li>
-                    <div class="contact-label">Email(Personal)</div>
-                    <a href="mailto:you@example.com">donghoon.ryu0@gmail.com</a>
-                </li>
-                <li>
-                    <div class="contact-label">Email(School)</div>
-                    <a href="mailto:you@example.com">dryu8@wisc.edu</a>
-                </li>
-                <li>
-                    <div class="contact-label">GitHub</div>
-                    <a href="https://github.com/ryuyeorm" target="_blank" rel="noreferrer">
-                        github.com/ryuyeorm
-                    </a>
-                </li>
-                <li>
-                    <div class="contact-label">LinkedIn</div>
-                    <a href="https://www.linkedin.com/in/ryud0ng" target="_blank" rel="noreferrer">
-                        linkedin.com/in/ryud0ng
-                    </a>
-                </li>
-            </ul>
-        </section>
-    </main>
+    <script>
+        // --- PRODUCT DATA ---
+        const products = [
+            { id: 1, name: "Nyota Where Moments Meet Series", image: "https://prod-america-res.popmart.com/default/20260424_175048_814474____1_-nyota-where-moments-meet-series-plush-doll_plush-toys_details_pop-mart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/pop-now/set/501" },
+            { id: 2, name: "DIMOO Moments in Bloom Nightlight", image: "https://prod-america-res.popmart.com/default/20260313_174035_574455____list_pic_____800x800.png?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/collection/317/dimoo-moments-in-bloom" },
+            { id: 3, name: "Twinkle Twinkle Crush On You", image: "https://prod-america-res.popmart.com/default/20260116_175326_819044____scene_twinkle-twinkle-crush-on-you-series-figures_blind-boxes_details_pop-mart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/collection/285/twinkle-twinkle-crush-on-you" },
+            { id: 4, name: "DIMOO Animal Kingdom Series", image: "https://prod-america-res.popmart.com/default/20240319_163003_205755__1200x1200.jpg?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/products/1019/dimoo-animal-kingdom-series-figures" },
+            { id: 5, name: "DIMOO Retro Series", image: "https://prod-america-res.popmart.com/default/08_xx05NnkmOV_1200x1200.jpg?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/search?keywords=DIMOO+Retro+Series" },
+            { id: 7, name: "Nyota's Growing up by Your Way Series", image: "https://prod-america-res.popmart.com/default/20241128_164056_485425____secret_nyota-growing-up-by-your-way-series-figures_blind-boxes_details_popmart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=Nyota%27s+Growing+up+by+Your+Way" },
+            { id: 8, name: "DIMOO Dating Series", image: "https://prod-america-res.popmart.com/default/01_xximH7t09O_1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=DIMOO+Dating+Series" },
+            { id: 9, name: "Twinkle Twinkle Gift from the Stars Series", image: "https://prod-america-res.popmart.com/default/20241205_190000_659021____secret_twinkle-twinkle-the-gifts-from-stars-series-figures_blind-boxes_details_popmart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=Twinkle+Twinkle+Gift+from+the+Stars" }
+        ];
 
-    <footer>
-        © <span id="year"></span> Donghoon Ryu
-    </footer>
-</div>
+        let cart = []; // Array of product IDs
+        const MAX_ITEMS = 5; // UPDATED TO 5
 
-<script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-</script>
+        // Custom Modal Functions
+        function showModal(message) {
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // Utility to switch pages
+        function showPage(pageId) {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('ordering-page').classList.add('hidden');
+            document.getElementById('payment-page').classList.add('hidden');
+            document.getElementById('ending-page').classList.add('hidden');
+            
+            document.getElementById(pageId).classList.remove('hidden');
+
+            if(pageId === 'ordering-page') {
+                document.getElementById('cart-container').classList.remove('hidden');
+                renderProducts();
+            } else {
+                document.getElementById('cart-container').classList.add('hidden');
+            }
+        }
+
+        // Render the grid of items
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; 
+
+            products.forEach(product => {
+                const qtyInCart = cart.filter(id => id === product.id).length;
+                const card = document.createElement('div');
+                card.className = `product-card ${qtyInCart > 0 ? 'has-items' : ''}`;
+                card.id = `product-${product.id}`;
+
+                const imageContent = product.image 
+                    ? `<img src="${product.image}" class="product-image" onclick="addItem(${product.id})">` 
+                    : `<div class="product-image" onclick="addItem(${product.id})">IMAGE HERE</div>`;
+
+                card.innerHTML = `
+                    ${imageContent}
+                    <div class="product-name">${product.name}</div>
+                    <a href="${product.link}" target="_blank" class="product-link">🔗 View Series</a>
+                    <div class="controls">
+                        <button class="ctrl-btn" onclick="removeItem(${product.id})" ${qtyInCart === 0 ? 'disabled' : ''}>-</button>
+                        <span class="qty-display" id="qty-${product.id}">${qtyInCart}</span>
+                        <button class="ctrl-btn" onclick="addItem(${product.id})">+</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addItem(productId) {
+            if (cart.length < MAX_ITEMS) {
+                cart.push(productId);
+                updateCartUI();
+            } else {
+                showModal(`You already have ${MAX_ITEMS} items! Time to check out. 🛒`);
+            }
+        }
+
+        function removeItem(productId) {
+            const index = cart.indexOf(productId);
+            if (index > -1) {
+                cart.splice(index, 1);
+                updateCartUI();
+            }
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-badge').innerText = cart.length;
+            renderProducts(); // Re-render to update quantities and borders
+        }
+
+        // Proceed to Checkout
+        function goToPayment() {
+            if (cart.length !== MAX_ITEMS) {
+                showModal(`You currently have ${cart.length} items. Please pick exactly ${MAX_ITEMS} gifts!`);
+                return;
+            }
+            
+            // Tally items
+            const checkoutList = document.getElementById('checkout-list');
+            checkoutList.innerHTML = '';
+            
+            const itemCounts = {};
+            cart.forEach(id => { itemCounts[id] = (itemCounts[id] || 0) + 1; });
+
+            Object.keys(itemCounts).forEach(id => {
+                const product = products.find(p => p.id == id);
+                checkoutList.innerHTML += `
+                    <div class="checkout-item">
+                        <span>${product.name}</span>
+                        <span style="font-weight:bold;">x${itemCounts[id]}</span>
+                    </div>
+                `;
+            });
+
+            showPage('payment-page');
+        }
+
+        // Proceed to Ending
+        function processPayment() {
+            // Build the receipt DOM
+            const receiptItems = document.getElementById('receipt-items');
+            receiptItems.innerHTML = '';
+            
+            const itemCounts = {};
+            cart.forEach(id => { itemCounts[id] = (itemCounts[id] || 0) + 1; });
+
+            Object.keys(itemCounts).forEach(id => {
+                const product = products.find(p => p.id == id);
+                // Trim name to fit receipt width better
+                let shortName = product.name.length > 25 ? product.name.substring(0, 25) + '...' : product.name;
+                receiptItems.innerHTML += `
+                    <div class="receipt-item">
+                        <span>${shortName}</span>
+                        <span>x${itemCounts[id]}</span>
+                    </div>
+                `;
+            });
+
+            showPage('ending-page');
+        }
+
+        // Convert the receipt DIV into a downloadable image
+        function downloadReceipt() {
+            const receiptElement = document.querySelector("#receipt-card");
+            
+            html2canvas(receiptElement, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'DHMART_Anniversary_Order.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+    </script>
 </body>
 </html>
