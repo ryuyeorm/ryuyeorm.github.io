@@ -3,520 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHMART - Happy Anniversary!</title>
-    <!-- We include this library so we can convert the receipt into a downloadable image -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Happy Children's Day!</title>
     <style>
         /* --- BASE STYLES --- */
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fff0f5; 
-            color: #333;
-        }
-        .hidden { display: none !important; }
-
-        /* --- CUSTOM MODAL --- */
-        #custom-modal {
-            position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff0f5; /* Soft pastel pink */
+            color: #d6336c;
             display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 20px;
-            text-align: center;
-            border: 3px solid #ff4081;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 400px;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        #modal-message {
-            font-size: 1.2rem;
-            margin-bottom: 25px;
-            color: #333;
-            font-weight: bold;
-            line-height: 1.4;
-        }
-
-        /* --- BUTTONS --- */
-        .btn {
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-        .btn:hover {
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 64, 129, 0.6);
-            background-color: #f50057;
-        }
-
-        /* --- START SCREEN --- */
-        #start-screen {
-            display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
             text-align: center;
-            animation: fadeIn 1.5s ease-in-out;
-        }
-        h1 {
-            color: #ff4081;
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        p.subtitle {
-            color: #666;
-            font-size: 1.2rem;
-            margin-bottom: 30px;
         }
 
-        /* --- ORDERING PAGE --- */
-        #ordering-page {
-            padding: 40px 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease-in-out;
-            padding-bottom: 120px;
-        }
-        .page-header {
-            text-align: center;
-            color: #ff4081;
-            margin-bottom: 30px;
-            font-size: 2rem;
-        }
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        .product-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            position: relative;
-            border: 3px solid transparent;
-        }
-        .product-card.has-items { border-color: #ff4081; background-color: #ffeef3; }
-        
-        .product-image {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            background-color: #f0f0f0; 
-            border-radius: 10px;
-            object-fit: cover;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #aaa;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .product-name {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #444;
-            line-height: 1.3;
-            margin-bottom: 5px;
-        }
-
-        /* Series Link Style */
-        .product-link {
-            display: inline-block;
-            font-size: 0.85rem;
-            color: #ff4081;
-            text-decoration: none;
-            margin-bottom: 15px;
-            transition: color 0.2s;
-        }
-        .product-link:hover {
-            color: #f50057;
-            text-decoration: underline;
-        }
-        
-        /* Item Controls */
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
-        .ctrl-btn {
-            background-color: #ff4081;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .ctrl-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-        .qty-display { font-weight: bold; font-size: 1.2rem; width: 20px; }
-
-        /* --- FLOATING CART --- */
-        #cart-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1000;
-        }
-        #cart-btn {
-            background-color: #ff4081;
-            color: white;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.8rem;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
-            transition: transform 0.2s;
-        }
-        #cart-btn:hover { transform: scale(1.1); }
-        #cart-badge {
+        /* --- SCREENS --- */
+        .screen {
             position: absolute;
-            top: 0;
-            right: 0;
-            background-color: #333;
-            color: white;
-            font-size: 1rem;
-            font-weight: bold;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid #fff0f5;
-        }
-
-        /* --- PAYMENT PAGE --- */
-        #payment-page {
-            max-width: 600px;
-            margin: 50px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        .checkout-list {
-            text-align: left;
-            margin: 20px 0;
-            border-top: 2px dashed #ff4081;
-            border-bottom: 2px dashed #ff4081;
-            padding: 20px 0;
-        }
-        .checkout-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-        .checkout-total {
-            font-size: 1.5rem;
-            color: #ff4081;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-
-        /* --- ENDING PAGE & RECEIPT --- */
-        #ending-page {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 40px 20px;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        #receipt-card {
-            background-color: #fff;
-            width: 350px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            margin-bottom: 30px;
-            text-align: center;
-            font-family: 'Courier New', Courier, monospace; /* Receipt font */
-        }
-        .receipt-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 5px; }
-        .receipt-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
-        .receipt-divider { border-top: 1px dashed #333; margin: 15px 0; }
-        .receipt-item { display: flex; justify-content: space-between; text-align: left; font-size: 0.9rem; margin-bottom: 8px; }
-        .receipt-footer { font-weight: bold; font-size: 1.2rem; margin-top: 20px; }
-        .paid-stamp {
-            color: #ff4081;
-            border: 3px solid #ff4081;
-            display: inline-block;
-            padding: 5px 15px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            transform: rotate(-10deg);
-            margin-top: 20px;
-            border-radius: 5px;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        #intro-screen {
+            z-index: 10;
+        }
+
+        #card-screen {
+            opacity: 0;
+            visibility: hidden;
+            z-index: 5;
+        }
+
+        /* --- INTRO SCREEN ELEMENTS --- */
+        .envelope-icon {
+            font-size: 6rem;
+            margin-bottom: 10px;
+            animation: gentle-bounce 2s infinite ease-in-out;
+        }
+
+        .greeting-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #c2255c;
+        }
+
+        .open-btn {
+            background-color: #ff87a3;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 135, 163, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .open-btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            background-color: #ff6b8b;
+            box-shadow: 0 6px 20px rgba(255, 135, 163, 0.6);
+        }
+
+        /* --- 3D FLOATING CARD ELEMENTS --- */
+        .card-wrapper {
+            perspective: 1500px;
+            animation: float 4s infinite ease-in-out;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            /* Sized for a standard landscape photo/card aspect ratio */
+            width: 90vw;
+            max-width: 700px;
+            aspect-ratio: 4 / 3; 
+            position: relative;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy, natural flip */
+            transform-style: preserve-3d;
+        }
+
+        /* The class we add with JavaScript to flip the card */
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* For Safari */
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background-color: white;
+            border: 8px solid white; /* Gives it a nice physical card border */
+            box-sizing: border-box;
+        }
+
+        /* The front of the card */
+        .card-front {
+            /* Image 1.png will be here */
+        }
+
+        /* The back of the card */
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the images fill the space perfectly without stretching */
+            border-radius: 12px;
+        }
+
+        .instruction {
+            margin-top: 40px;
+            font-size: 1.1rem;
+            color: #d6336c;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-1deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
         }
     </style>
 </head>
 <body>
 
-    <!-- CUSTOM POP-UP MODAL -->
-    <div id="custom-modal" class="hidden">
-        <div class="modal-content">
-            <div id="modal-message">Message goes here</div>
-            <button class="btn" style="margin-top: 0; padding: 10px 30px;" onclick="closeModal()">OK</button>
-        </div>
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen" class="screen">
+        <div class="envelope-icon">💌</div>
+        <div class="greeting-text">A special card is here for you!</div>
+        <button class="open-btn" onclick="openCard()">Open Envelope</button>
     </div>
 
-    <!-- 1. START SCREEN -->
-    <div id="start-screen">
-        <h1>Welcome to DHMART!</h1>
-        <p class="subtitle">Happy 15 months Baby! Click start to continue to your gift ❤️❤️</p>
-        <button class="btn" onclick="showPage('ordering-page')">Start Shopping</button>
-    </div>
+    <!-- CARD SCREEN -->
+    <div id="card-screen" class="screen">
+        <div class="card-wrapper" onclick="flipCard()">
+            <div class="card-inner" id="my-card">
+                
+                <!-- FRONT OF CARD -->
+                <div class="card-face card-front">
+                    <img src="1.png" alt="Front of Card" class="card-image">
+                </div>
+                
+                <!-- BACK OF CARD -->
+                <div class="card-face card-back">
+                    <img src="2.jpg" alt="Back of Card" class="card-image">
+                </div>
 
-    <!-- 2. ORDERING PAGE -->
-    <div id="ordering-page" class="hidden">
-        <h2 class="page-header">Choose exactly 5 items!</h2>
-        <div class="product-grid" id="product-grid"></div>
-    </div>
-
-    <!-- FLOATING CART -->
-    <div id="cart-container" class="hidden">
-        <div id="cart-btn" onclick="goToPayment()">
-            🛒
-            <div id="cart-badge">0</div>
-        </div>
-    </div>
-
-    <!-- 3. PAYMENT PAGE -->
-    <div id="payment-page" class="hidden">
-        <h2 class="page-header">Review Your Order</h2>
-        <p>You selected 5 beautiful gifts! Here is your summary:</p>
-        
-        <div class="checkout-list" id="checkout-list">
-            <!-- Items injected via JS -->
-        </div>
-
-        <div class="checkout-total">Payment Method : 100 kisses :)))</div>
-        <button class="btn" onclick="processPayment()">Proceed with Payment</button>
-        <button class="btn" style="background-color: #999; margin-left: 10px;" onclick="showPage('ordering-page')">Go Back</button>
-    </div>
-
-    <!-- 4. ENDING PAGE -->
-    <div id="ending-page" class="hidden">
-        <h2 class="page-header">Order Confirmed! 🎉</h2>
-        <p>Thank you for shopping at DHMART. Download your receipt and send it to ME!</p>
-
-        <!-- The Receipt Element (Will be turned into an image) -->
-        <div id="receipt-card">
-            <div class="receipt-title">DHMART</div>
-            <div class="receipt-subtitle">Order receipt</div>
-            <div class="receipt-divider"></div>
-            
-            <div id="receipt-items">
-                <!-- Items injected via JS -->
             </div>
-            
-            <div class="receipt-divider"></div>
-            <div class="receipt-item" style="font-weight: bold;">
-                <span>Total:</span>
-                <span>100 Kisses</span>
-            </div>
-            <div class="paid-stamp">PAID IN FULL</div>
         </div>
-
-        <button class="btn" onclick="downloadReceipt()">📥 Download Order Image</button>
+        <div class="instruction">Tap the card to flip it over! ✨</div>
     </div>
 
     <script>
-        // --- PRODUCT DATA ---
-        const products = [
-            { id: 1, name: "Nyota Where Moments Meet Series", image: "https://prod-america-res.popmart.com/default/20260424_175048_814474____1_-nyota-where-moments-meet-series-plush-doll_plush-toys_details_pop-mart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/pop-now/set/501" },
-            { id: 2, name: "DIMOO Moments in Bloom Nightlight", image: "https://prod-america-res.popmart.com/default/20260313_174035_574455____list_pic_____800x800.png?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/collection/317/dimoo-moments-in-bloom" },
-            { id: 3, name: "Twinkle Twinkle Crush On You", image: "https://prod-america-res.popmart.com/default/20260116_175326_819044____scene_twinkle-twinkle-crush-on-you-series-figures_blind-boxes_details_pop-mart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/collection/285/twinkle-twinkle-crush-on-you" },
-            { id: 4, name: "DIMOO Animal Kingdom Series", image: "https://prod-america-res.popmart.com/default/20240319_163003_205755__1200x1200.jpg?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/products/1019/dimoo-animal-kingdom-series-figures" },
-            { id: 5, name: "DIMOO Retro Series", image: "https://prod-america-res.popmart.com/default/08_xx05NnkmOV_1200x1200.jpg?x-oss-process=image/resize,p_40,format,webp,format,webp", link: "https://www.popmart.com/us/search?keywords=DIMOO+Retro+Series" },
-            { id: 7, name: "Nyota's Growing up by Your Way Series", image: "https://prod-america-res.popmart.com/default/20241128_164056_485425____secret_nyota-growing-up-by-your-way-series-figures_blind-boxes_details_popmart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=Nyota%27s+Growing+up+by+Your+Way" },
-            { id: 8, name: "DIMOO Dating Series", image: "https://prod-america-res.popmart.com/default/01_xximH7t09O_1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=DIMOO+Dating+Series" },
-            { id: 9, name: "Twinkle Twinkle Gift from the Stars Series", image: "https://prod-america-res.popmart.com/default/20241205_190000_659021____secret_twinkle-twinkle-the-gifts-from-stars-series-figures_blind-boxes_details_popmart-us_____1200x1200.jpg", link: "https://www.popmart.com/us/search?keywords=Twinkle+Twinkle+Gift+from+the+Stars" }
-        ];
-
-        let cart = []; // Array of product IDs
-        const MAX_ITEMS = 5; // UPDATED TO 5
-
-        // Custom Modal Functions
-        function showModal(message) {
-            document.getElementById('modal-message').innerText = message;
-            document.getElementById('custom-modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('custom-modal').classList.add('hidden');
-        }
-
-        // Utility to switch pages
-        function showPage(pageId) {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('ordering-page').classList.add('hidden');
-            document.getElementById('payment-page').classList.add('hidden');
-            document.getElementById('ending-page').classList.add('hidden');
+        // Function to hide the intro screen and show the floating card
+        function openCard() {
+            document.getElementById('intro-screen').style.opacity = '0';
+            document.getElementById('intro-screen').style.visibility = 'hidden';
             
-            document.getElementById(pageId).classList.remove('hidden');
-
-            if(pageId === 'ordering-page') {
-                document.getElementById('cart-container').classList.remove('hidden');
-                renderProducts();
-            } else {
-                document.getElementById('cart-container').classList.add('hidden');
-            }
+            document.getElementById('card-screen').style.visibility = 'visible';
+            document.getElementById('card-screen').style.opacity = '1';
         }
 
-        // Render the grid of items
-        function renderProducts() {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = ''; 
-
-            products.forEach(product => {
-                const qtyInCart = cart.filter(id => id === product.id).length;
-                const card = document.createElement('div');
-                card.className = `product-card ${qtyInCart > 0 ? 'has-items' : ''}`;
-                card.id = `product-${product.id}`;
-
-                const imageContent = product.image 
-                    ? `<img src="${product.image}" class="product-image" onclick="addItem(${product.id})">` 
-                    : `<div class="product-image" onclick="addItem(${product.id})">IMAGE HERE</div>`;
-
-                card.innerHTML = `
-                    ${imageContent}
-                    <div class="product-name">${product.name}</div>
-                    <a href="${product.link}" target="_blank" class="product-link">🔗 View Series</a>
-                    <div class="controls">
-                        <button class="ctrl-btn" onclick="removeItem(${product.id})" ${qtyInCart === 0 ? 'disabled' : ''}>-</button>
-                        <span class="qty-display" id="qty-${product.id}">${qtyInCart}</span>
-                        <button class="ctrl-btn" onclick="addItem(${product.id})">+</button>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function addItem(productId) {
-            if (cart.length < MAX_ITEMS) {
-                cart.push(productId);
-                updateCartUI();
-            } else {
-                showModal(`You already have ${MAX_ITEMS} items! Time to check out. 🛒`);
-            }
-        }
-
-        function removeItem(productId) {
-            const index = cart.indexOf(productId);
-            if (index > -1) {
-                cart.splice(index, 1);
-                updateCartUI();
-            }
-        }
-
-        function updateCartUI() {
-            document.getElementById('cart-badge').innerText = cart.length;
-            renderProducts(); // Re-render to update quantities and borders
-        }
-
-        // Proceed to Checkout
-        function goToPayment() {
-            if (cart.length !== MAX_ITEMS) {
-                showModal(`You currently have ${cart.length} items. Please pick exactly ${MAX_ITEMS} gifts!`);
-                return;
-            }
-            
-            // Tally items
-            const checkoutList = document.getElementById('checkout-list');
-            checkoutList.innerHTML = '';
-            
-            const itemCounts = {};
-            cart.forEach(id => { itemCounts[id] = (itemCounts[id] || 0) + 1; });
-
-            Object.keys(itemCounts).forEach(id => {
-                const product = products.find(p => p.id == id);
-                checkoutList.innerHTML += `
-                    <div class="checkout-item">
-                        <span>${product.name}</span>
-                        <span style="font-weight:bold;">x${itemCounts[id]}</span>
-                    </div>
-                `;
-            });
-
-            showPage('payment-page');
-        }
-
-        // Proceed to Ending
-        function processPayment() {
-            // Build the receipt DOM
-            const receiptItems = document.getElementById('receipt-items');
-            receiptItems.innerHTML = '';
-            
-            const itemCounts = {};
-            cart.forEach(id => { itemCounts[id] = (itemCounts[id] || 0) + 1; });
-
-            Object.keys(itemCounts).forEach(id => {
-                const product = products.find(p => p.id == id);
-                // Trim name to fit receipt width better
-                let shortName = product.name.length > 25 ? product.name.substring(0, 25) + '...' : product.name;
-                receiptItems.innerHTML += `
-                    <div class="receipt-item">
-                        <span>${shortName}</span>
-                        <span>x${itemCounts[id]}</span>
-                    </div>
-                `;
-            });
-
-            showPage('ending-page');
-        }
-
-        // Convert the receipt DIV into a downloadable image
-        function downloadReceipt() {
-            const receiptElement = document.querySelector("#receipt-card");
-            
-            html2canvas(receiptElement, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'DHMART_Anniversary_Order.png';
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            });
+        // Function to flip the card around when clicked
+        function flipCard() {
+            const card = document.getElementById('my-card');
+            card.classList.toggle('is-flipped');
         }
     </script>
 </body>
